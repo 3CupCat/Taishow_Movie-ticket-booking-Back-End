@@ -14,8 +14,11 @@ import java.util.List;
 @RestController
 public class TheaterController {
 
-    @Autowired
     private TheaterService theaterService;
+
+    public TheaterController(TheaterService theaterService) {
+        this.theaterService = theaterService;
+    }
 
     @PostMapping("/createTheater")
     public ResponseEntity<Theaters> createTheater(@RequestBody Theaters theaters){

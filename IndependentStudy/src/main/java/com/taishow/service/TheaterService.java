@@ -13,8 +13,11 @@ import java.util.Optional;
 @Service
 public class TheaterService {
 
-    @Autowired
     private TheaterRepository theaterRepository;
+
+    public TheaterService(TheaterRepository theaterRepository) {
+        this.theaterRepository = theaterRepository;
+    }
 
     public Theaters createTheater(Theaters theaters){
         return theaterRepository.save(theaters);
