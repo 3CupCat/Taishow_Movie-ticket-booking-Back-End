@@ -85,4 +85,13 @@ public class MovieController {
         return movie.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
+    @GetMapping("/homepageTrailers")
+    public ResponseEntity<List<Movie>> getHomepageTrailers() {
+        List<Movie> trailers = movieService.getHomepageTrailers();
+        if (!trailers.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.OK).body(trailers);
+        } else {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        }
+    }
 }

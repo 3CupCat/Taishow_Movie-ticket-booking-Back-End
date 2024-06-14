@@ -6,7 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Date;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class MovieService {
@@ -84,7 +86,18 @@ public class MovieService {
         }
     }
     public List<Movie> getAllMovies(boolean isPlaying) {
-        return movieRepository.findByIsPlaying(isPlaying);
+        if (isPlaying) {
+            return movieRepository.findByIsPlaying(true);
+        } else {
+            // 返回即将上映的电影（过滤掉已下档的电影）
+            Date today = new Date();
+            return movieRepository.findByIsPlaying(false).stream()
+                    .filter(movie -> movie.getReleaseDate().after(today))
+                    .collect(Collectors.toList());
+        }
+    }
+    public List<Movie> getHomepageTrailers() {
+        return movieRepository.findByIsHomepageTrailer(true);
     }
 
 }

@@ -55,6 +55,8 @@ public class Movie {
     @Column(name = "is_playing", nullable = false)
     private boolean isPlaying;
 
+    @Column(name = "is_homepage_trailer", nullable = false)
+    private boolean isHomepageTrailer;
 
     // Getters and Setters
     public Integer getId() {
@@ -158,6 +160,14 @@ public class Movie {
 
     public void setPlaying(boolean isPlaying) {
         this.isPlaying = isPlaying;
+    }
+
+    public boolean isHomepageTrailer() {
+        return isHomepageTrailer;
+    }
+
+    public void setHomepageTrailer(boolean isHomepageTrailer) {
+        this.isHomepageTrailer = isHomepageTrailer;
     }
 
 }
