@@ -28,6 +28,17 @@ public class User {
     private String gender;
     private String address;
 
+    @Column(name = "bonus_point")
+    private Integer bonusPoint;
+
+    public Integer getBonusPoint() {
+        return bonusPoint;
+    }
+
+    public void setBonusPoint(Integer bonusPoint) {
+        this.bonusPoint = bonusPoint;
+    }
+
     public Integer getId() {
         return id;
     }
