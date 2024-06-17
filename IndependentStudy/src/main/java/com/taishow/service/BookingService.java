@@ -28,12 +28,14 @@ public class BookingService {
             Integer theaterId = (Integer) result[0];
             String theaterName = (String) result[1];
             String address = (String) result[2];
-            String showTime = result[3].toString();
-            Integer screenId = (Integer) result[4];
-            String screenName = (String) result[5];
-            String screenClass = (String) result[6];
+            Integer showTimeId = (Integer) result[3];
+            String showTime = result[4].toString();
+            Integer screenId = (Integer) result[5];
+            String screenName = (String) result[6];
+            String screenClass = (String) result[7];
 
             ShowsDto showsDto = new ShowsDto();
+            showsDto.setShowTimeId(showTimeId);
             showsDto.setShowTime(showTime);
             showsDto.setScreenId(screenId);
             showsDto.setScreenName(screenName);

@@ -3,7 +3,8 @@ package com.taishow.entity;
 import jakarta.persistence.*;
 
 @Entity
-public class Theater {
+@Table(name = "theater")
+public class Theaters {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

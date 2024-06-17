@@ -29,4 +29,36 @@ public class ShowTime {
         this.movieId = movieId;
         this.showTime = showTime;
     }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public Integer getScreenId() {
+        return screenId;
+    }
+
+    public void setScreenId(Integer screenId) {
+        this.screenId = screenId;
+    }
+
+    public Integer getMovieId() {
+        return movieId;
+    }
+
+    public void setMovieId(Integer movieId) {
+        this.movieId = movieId;
+    }
+
+    public Date getShowTime() {
+        return showTime;
+    }
+
+    public void setShowTime(Date showTime) {
+        this.showTime = showTime;
+    }
 }

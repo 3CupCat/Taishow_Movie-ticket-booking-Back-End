@@ -2,10 +2,19 @@ package com.taishow.dto;
 
 public class ShowsDto {
 
+    private Integer showTimeId;
     private String showTime;
     private Integer screenId;
     private String screenName;
     private String screenClass;
+
+    public Integer getShowTimeId() {
+        return showTimeId;
+    }
+
+    public void setShowTimeId(Integer showTimeId) {
+        this.showTimeId = showTimeId;
+    }
 
     public String getShowTime() {
         return showTime;

@@ -12,8 +12,8 @@ import java.util.List;
 @Repository
 public interface BookingRepository extends JpaRepository<ShowTime, Integer> {
 
-    @Query("SELECT t.id, t.theaterName, t.address, st.showTime, s.id, s.screenName, s.screenClass " +
-            "FROM Theater t JOIN Screen s ON t.id = s.theaterId " +
+    @Query("SELECT t.id, t.theaterName, t.address, st.id, st.showTime, s.id, s.screenName, s.screenClass " +
+            "FROM Theaters t JOIN Screen s ON t.id = s.theaterId " +
             "JOIN ShowTime st ON s.id = st.screenId " +
             "WHERE st.movieId = :movieId AND st.showTime BETWEEN CURRENT_DATE AND :endDate")
     List<Object[]> getWeekShowById(@Param("movieId") Integer movieId, @Param("endDate") Date endDate);
