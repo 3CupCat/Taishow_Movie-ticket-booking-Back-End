@@ -12,11 +12,8 @@ public class Tickets {
     @Column(name = "ticket_type_id")
     private Integer ticketTypeId;
 
-    @Column(name = "showtime_id")
-    private Integer showTimeId;
-
-    @Column(name = "seat_num")
-    private String seatNum;
+    @Column(name = "seat_status_id")
+    private Integer seatStatusId;
 
     @Column(name = "orders_id")
     private Integer ordersId;
@@ -37,20 +34,12 @@ public class Tickets {
         this.ticketTypeId = ticketTypeId;
     }
 
-    public Integer getShowTimeId() {
-        return showTimeId;
+    public Integer getSeatStatusId() {
+        return seatStatusId;
     }
 
-    public void setShowTimeId(Integer showTimeId) {
-        this.showTimeId = showTimeId;
-    }
-
-    public String getSeatNum() {
-        return seatNum;
-    }
-
-    public void setSeatNum(String seatNum) {
-        this.seatNum = seatNum;
+    public void setSeatStatusId(Integer seatStatusId) {
+        this.seatStatusId = seatStatusId;
     }
 
     public Integer getOrdersId() {

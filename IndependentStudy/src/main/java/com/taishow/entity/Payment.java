@@ -27,6 +27,9 @@ public class Payment {
     @Column(name = "modify_time")
     private Date modifyTime;
 
+    @Column(name = "trade_num")
+    private String tradeNum;
+
     public Integer getId() {
         return id;
     }
@@ -81,5 +84,13 @@ public class Payment {
 
     public void setModifyTime(Date modifyTime) {
         this.modifyTime = modifyTime;
+    }
+
+    public String getTradeNum() {
+        return tradeNum;
+    }
+
+    public void setTradeNum(String tradeNum) {
+        this.tradeNum = tradeNum;
     }
 }

@@ -32,6 +32,12 @@ public class OrderController {
                                               @PathVariable Integer movieId){
         try {
             Map<String, String> orderDetail = orderService.createOrder(orderDto, movieId);
+
+            //僅使用紅利點數購票，不須送綠界付款
+            if ("0".equals(orderDetail.get("totalPrice"))){
+                return ResponseEntity.status(HttpStatus.CREATED).build();
+            }
+
             String aioCheckOutALLForm = orderService.ecpayCheckout(orderDetail);
             return ResponseEntity.status(HttpStatus.CREATED).body(aioCheckOutALLForm);
         } catch (Exception e){
@@ -40,7 +46,7 @@ public class OrderController {
         }
     }
 
-    //測試金流回調資料
+    //測試付款回調資料
     @PostMapping("/ecpayCallback")
     public ResponseEntity<String> handleEcpayCallback(@RequestBody Hashtable<String, String> callbackData){
 
@@ -50,12 +56,37 @@ public class OrderController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid CheckMacValue");
         }
 
-        if ("1".equals(callbackData.get("RtnCode"))){
-            //交易成功，更新相關資料
-        } else {
-            //交易失敗，調整相關資料
+        try {
+            if ("1".equals(callbackData.get("RtnCode"))){
+                orderService.paymentSuccess(callbackData);
+                return ResponseEntity.status(HttpStatus.OK).body("1|OK");
+            } else {
+                orderService.paymentFailure(callbackData);
+                return ResponseEntity.status(HttpStatus.OK).body("PaymentFailure");
+            }
+        } catch (Exception e){
+            System.out.println(e);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("建立訂單失敗: " + e.getMessage());
         }
+    }
 
-        return ResponseEntity.status(HttpStatus.OK).body("1|OK");
+    //測試退款功能 (後台路徑尚未決定)
+    @PostMapping("/refund/{ordersId}")
+    public ResponseEntity<String> createRefund(@PathVariable Integer ordersId){
+        try {
+            if (orderService.checkBuyTicketsOnlyUseBonus(ordersId)){
+                //不須退款，僅退回紅利點數
+                orderService.onlyRefundBonus(ordersId);
+                return ResponseEntity.status(HttpStatus.OK).build();
+            } else {
+                //需要退款，送綠界退款API
+                Map<String, String> refundDetail = orderService.createRefund(ordersId);
+                orderService.handleRefundResponse(refundDetail);
+                return ResponseEntity.status(HttpStatus.OK).build();
+            }
+        } catch (Exception e){
+            System.out.println(e);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("建立訂單失敗: " + e.getMessage());
+        }
     }
 }
