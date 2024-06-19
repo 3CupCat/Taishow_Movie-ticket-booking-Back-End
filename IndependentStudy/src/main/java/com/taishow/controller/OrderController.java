@@ -1,6 +1,7 @@
 package com.taishow.controller;
 
 import com.taishow.dto.OrderDto;
+import com.taishow.entity.TicketType;
 import com.taishow.service.OrderService;
 import ecpay.payment.integration.AllInOne;
 import org.springframework.http.HttpStatus;
@@ -8,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -26,6 +28,16 @@ public class OrderController {
 //
 //        return aioCheckOutALLForm;
 //    }
+
+    @GetMapping("/booking/{movieId}/order")
+    public ResponseEntity<List<TicketType>> getTicketTypeDetail(@PathVariable Integer movieId){
+        List<TicketType> ticketTypeList = orderService.getTicketTypeDetail(movieId);
+        if (!ticketTypeList.isEmpty()){
+            return ResponseEntity.status(HttpStatus.OK).body(ticketTypeList);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
 
     @PostMapping("/booking/{movieId}/order")
     public ResponseEntity<String> createOrder(@RequestBody OrderDto orderDto,

@@ -41,6 +41,10 @@ public class OrderService {
         this.snowflake = snowflake;
     }
 
+    public List<TicketType> getTicketTypeDetail(Integer movieId){
+        return ticketTypeRepository.findAll();
+    }
+
     @Transactional
     public Map<String, String> createOrder(OrderDto orderDto, Integer movieId) {
         // 檢查票數是否為0張、大於6張
