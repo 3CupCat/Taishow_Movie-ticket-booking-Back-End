@@ -30,6 +30,9 @@ public class Payment {
     @Column(name = "trade_num")
     private String tradeNum;
 
+    @Column(name = "payment_form", columnDefinition = "LONGTEXT")
+    private String paymentForm;
+
     public Integer getId() {
         return id;
     }
@@ -92,5 +95,13 @@ public class Payment {
 
     public void setTradeNum(String tradeNum) {
         this.tradeNum = tradeNum;
+    }
+
+    public String getPaymentForm() {
+        return paymentForm;
+    }
+
+    public void setPaymentForm(String paymentForm) {
+        this.paymentForm = paymentForm;
     }
 }

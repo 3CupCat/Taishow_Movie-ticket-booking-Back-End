@@ -5,7 +5,6 @@ import java.util.List;
 public class OrderDto {
 
     private Integer theaterId;
-    private Integer totalAmount;
     private Integer showTimeId;
     private List<Integer> seatStatusId;
     private List<Integer> ticketTypeId;
@@ -24,14 +23,6 @@ public class OrderDto {
 
     public void setTheaterId(Integer theaterId) {
         this.theaterId = theaterId;
-    }
-
-    public Integer getTotalAmount() {
-        return totalAmount;
-    }
-
-    public void setTotalAmount(Integer totalAmount) {
-        this.totalAmount = totalAmount;
     }
 
     public List<Integer> getSeatStatusId() {

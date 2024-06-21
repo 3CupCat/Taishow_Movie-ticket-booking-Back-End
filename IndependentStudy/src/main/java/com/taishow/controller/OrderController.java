@@ -21,14 +21,6 @@ public class OrderController {
         this.orderService = orderService;
     }
 
-    //測試金流用
-//    @PostMapping("/ecpayCheckout")
-//    public String ecpayCheckout() {
-//        String aioCheckOutALLForm = orderService.ecpayCheckout();
-//
-//        return aioCheckOutALLForm;
-//    }
-
     @GetMapping("/booking/{movieId}/order")
     public ResponseEntity<List<TicketType>> getTicketTypeDetail(@PathVariable Integer movieId){
         List<TicketType> ticketTypeList = orderService.getTicketTypeDetail(movieId);
@@ -58,22 +50,23 @@ public class OrderController {
         }
     }
 
-    //測試付款回調資料
     @PostMapping("/ecpayCallback")
-    public ResponseEntity<String> handleEcpayCallback(@RequestBody Hashtable<String, String> callbackData){
+    public ResponseEntity<String> handleEcpayCallback(@RequestParam Map<String, String> callbackData){
+
+        Hashtable<String, String> hashtable = new Hashtable<>(callbackData);
 
         AllInOne allInOne = new AllInOne("");
 
-        if (!allInOne.compareCheckMacValue(callbackData)){
+        if (!allInOne.compareCheckMacValue(hashtable)){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid CheckMacValue");
         }
 
         try {
             if ("1".equals(callbackData.get("RtnCode"))){
-                orderService.paymentSuccess(callbackData);
+                orderService.paymentSuccess(hashtable);
                 return ResponseEntity.status(HttpStatus.OK).body("1|OK");
             } else {
-                orderService.paymentFailure(callbackData);
+                orderService.paymentFailure(hashtable);
                 return ResponseEntity.status(HttpStatus.OK).body("PaymentFailure");
             }
         } catch (Exception e){

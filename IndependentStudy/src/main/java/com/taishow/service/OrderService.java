@@ -3,6 +3,7 @@ package com.taishow.service;
 import com.taishow.dao.*;
 import com.taishow.dto.OrderDto;
 import com.taishow.entity.*;
+import com.taishow.myutil.PaymentTypeConverter;
 import com.taishow.myutil.QRCodeGenerator;
 import com.taishow.myutil.Snowflake;
 import ecpay.payment.integration.AllInOne;
@@ -59,6 +60,14 @@ public class OrderService {
             throw new IllegalArgumentException("請選擇等同座位數的票");
         }
 
+        // 檢查位置是否已被預訂
+        for (int i = 0; i < orderDto.getSeatStatusId().size(); i++){
+            Optional<SeatStatus> seatStatusOptional = seatStatusRepository.findById(orderDto.getSeatStatusId().get(i));
+            if (seatStatusOptional.isPresent() && "taken".equals(seatStatusOptional.get().getStatus())){
+                throw new IllegalArgumentException("座位已有人預訂，請重新選擇座位");
+            }
+        }
+
         // 計算總金額和總扣除紅利
         int totalPrice = 0;
         int reduceBonusPoint = 0;
@@ -96,7 +105,7 @@ public class OrderService {
         orders.setTotalAmount(totalPrice);
         try {
             String qrCodeBase64 = QRCodeGenerator.generateQRCodeBase64(orders.getOrderNum(), 350, 350);
-            orders.setQrcode(qrCodeBase64);
+            orders.setQrcode("data:image/png;base64," + qrCodeBase64);
         } catch (Exception e) {
             System.out.println("生成QR碼失敗: " + e.getMessage());
         }
@@ -105,8 +114,8 @@ public class OrderService {
         // 建立支付紀錄
         Payment payment = new Payment();
         payment.setOrdersId(orders.getId());
-        payment.setPayway(""); // 等金流回調，要記得更新這欄
-        payment.setPayStatus(orderDto.getTotalAmount() != 0 ? "未付款" : "不需付款");
+        payment.setPayway("");
+        payment.setPayStatus(orders.getTotalAmount() != 0 ? "未付款" : "不需付款");
         payment.setMethod("付款");
         payment.setModifyTime(now);
         paymentRepository.save(payment);
@@ -155,10 +164,22 @@ public class OrderService {
         obj.setReturnURL("http://localhost:8080/ecpayCallback"); //付款完成通知回傳網址
         obj.setStoreID(orderDetail.get("theaterId")); //特店旗下店舖代號 (theaterId)
         obj.setClientBackURL("https://www.youtube.com/"); //Client端返回特店的按鈕連結
-//        obj.setOrderResultURL(""); //Client端回傳付款結果網址，測試完成再改用這個
+        obj.setOrderResultURL("http://localhost:8080/ecpayCallback"); //Client端回傳付款結果網址，測試完成再改用這個
         obj.setNeedExtraPaidInfo("N");
 
         String form = allInOne.aioCheckOut(obj, null);
+
+        //將表單存回資料庫
+        Optional<Payment> paymentOptional = paymentRepository.getPaymentByOrderNum(orderDetail.get("OrderNum"));
+        if (paymentOptional.isEmpty()){
+            throw new RuntimeException("訂單不存在");
+        }
+
+        Payment payment = paymentOptional.get();
+
+        payment.setPaymentForm(form);
+        payment.setModifyTime(now);
+        paymentRepository.save(payment);
 
         return form;
     }
@@ -181,11 +202,16 @@ public class OrderService {
 
         Payment payment = paymentOptional.get();
         Date now = new Date();
-        payment.setPayway(callbackData.get("PaymentType"));
+        PaymentTypeConverter paymentTypeConverter = new PaymentTypeConverter();
+        String paymentType = callbackData.get("PaymentType");
+        String processedPaymentType = paymentTypeConverter.getProcessedPaymentType(paymentType);
+
+        payment.setPayway(processedPaymentType);
         payment.setPayStatus("完成");
         payment.setPayTime(now);
         payment.setModifyTime(now);
         payment.setTradeNum(callbackData.get("TradeNo"));
+        payment.setPaymentForm("");
         paymentRepository.save(payment);
 
         // 訂單成功，產生紅利
@@ -214,10 +240,15 @@ public class OrderService {
 
         Payment payment = paymentOptional.get();
         Date now = new Date();
-        payment.setPayway(callbackData.get("PaymentType")); //須檢查訂單未付款時，該值回調為何
+        PaymentTypeConverter paymentTypeConverter = new PaymentTypeConverter();
+        String paymentType = callbackData.get("PaymentType");
+        String processedPaymentType = paymentTypeConverter.getProcessedPaymentType(paymentType);
+
+        payment.setPayway(processedPaymentType);
         payment.setPayStatus("付款失敗");
         payment.setModifyTime(now);
         payment.setTradeNum(callbackData.get("TradeNo"));
+        payment.setPaymentForm("");
         paymentRepository.save(payment);
 
         // 紅利購票時，退回紅利點數
