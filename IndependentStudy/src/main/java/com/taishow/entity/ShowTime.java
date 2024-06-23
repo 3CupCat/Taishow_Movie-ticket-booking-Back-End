@@ -23,6 +23,9 @@ public class ShowTime {
     @Column(name = "showtime")
     private Date showTime;
 
+    public ShowTime() {
+    }
+
     public ShowTime(Integer id, Integer screenId, Integer movieId, Date showTime) {
         this.id = id;
         this.screenId = screenId;

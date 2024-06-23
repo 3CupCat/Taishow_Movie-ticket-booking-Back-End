@@ -12,11 +12,11 @@ public class Seat {
     @Column(name = "screen_id")
     private Integer screenId;
 
-    @Column(name = "row_number")
-    private Integer rowNumber;
+    @Column(name = "row_num")
+    private Integer rowNum;
 
-    @Column(name = "seat_number")
-    private Integer seatNumber;
+    @Column(name = "seat_num")
+    private Integer seatNum;
 
     @Column(name = "seat_note")
     private String seatNote;
@@ -40,20 +40,20 @@ public class Seat {
         this.screenId = screenId;
     }
 
-    public Integer getRowNumber() {
-        return rowNumber;
+    public Integer getRowNum() {
+        return rowNum;
     }
 
-    public void setRowNumber(Integer rowNumber) {
-        this.rowNumber = rowNumber;
+    public void setRowNum(Integer rowNum) {
+        this.rowNum = rowNum;
     }
 
-    public Integer getSeatNumber() {
-        return seatNumber;
+    public Integer getSeatNum() {
+        return seatNum;
     }
 
-    public void setSeatNumber(Integer seatNumber) {
-        this.seatNumber = seatNumber;
+    public void setSeatNum(Integer seatNum) {
+        this.seatNum = seatNum;
     }
 
     public String getSeatNote() {

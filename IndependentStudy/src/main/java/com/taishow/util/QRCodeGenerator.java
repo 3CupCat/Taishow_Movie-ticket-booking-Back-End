@@ -1,4 +1,4 @@
-package com.taishow.myutil;
+package com.taishow.util;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.EncodeHintType;

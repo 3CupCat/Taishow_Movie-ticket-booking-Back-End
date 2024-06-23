@@ -1,16 +1,17 @@
-package com.taishow.service;
+package com.taishow.service.client;
 
 import com.taishow.dao.*;
 import com.taishow.dto.OrderDto;
 import com.taishow.entity.*;
-import com.taishow.myutil.PaymentTypeConverter;
-import com.taishow.myutil.QRCodeGenerator;
-import com.taishow.myutil.Snowflake;
+import com.taishow.util.PaymentTypeConverter;
+import com.taishow.util.QRCodeGenerator;
+import com.taishow.util.Snowflake;
 import ecpay.payment.integration.AllInOne;
 import ecpay.payment.integration.domain.AioCheckOutALL;
 import ecpay.payment.integration.domain.DoActionObj;
 import jakarta.transaction.Transactional;
 import org.json.JSONObject;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
@@ -26,12 +27,15 @@ public class OrderService {
     private final TicketRepository ticketRepository;
     private final TicketTypeRepository ticketTypeRepository;
     private final SeatStatusRepository seatStatusRepository;
+    private final TheaterRepository theaterRepository;
+    private final ShowTimeRepository showTimeRepository;
     private final Snowflake snowflake;
 
     public OrderService(OrderRepository orderRepository, UserRepository userRepository,
                         PaymentRepository paymentRepository, BonusRepository bonusRepository,
                         TicketRepository ticketRepository, TicketTypeRepository ticketTypeRepository,
-                        SeatStatusRepository seatStatusRepository, Snowflake snowflake) {
+                        SeatStatusRepository seatStatusRepository, TheaterRepository theaterRepository,
+                        ShowTimeRepository showTimeRepository, Snowflake snowflake) {
         this.orderRepository = orderRepository;
         this.userRepository = userRepository;
         this.paymentRepository = paymentRepository;
@@ -39,6 +43,8 @@ public class OrderService {
         this.ticketRepository = ticketRepository;
         this.ticketTypeRepository = ticketTypeRepository;
         this.seatStatusRepository = seatStatusRepository;
+        this.theaterRepository = theaterRepository;
+        this.showTimeRepository = showTimeRepository;
         this.snowflake = snowflake;
     }
 
@@ -46,8 +52,12 @@ public class OrderService {
         return ticketTypeRepository.findAll();
     }
 
-    @Transactional
-    public Map<String, String> createOrder(OrderDto orderDto, Integer movieId) {
+    public void checkOrderInformation(OrderDto orderDto, Integer movieId){
+        // 檢查有無選擇影城、場次
+        if (orderDto.getTheaterId() == null || orderDto.getShowTimeId() == null){
+            throw new IllegalArgumentException("請先選擇場次");
+        }
+
         // 檢查票數是否為0張、大於6張
         if (orderDto.getSeatStatusId().isEmpty()) {
             throw new IllegalArgumentException("請先選擇座位");
@@ -60,14 +70,30 @@ public class OrderService {
             throw new IllegalArgumentException("請選擇等同座位數的票");
         }
 
-        // 檢查位置是否已被預訂
-        for (int i = 0; i < orderDto.getSeatStatusId().size(); i++){
-            Optional<SeatStatus> seatStatusOptional = seatStatusRepository.findById(orderDto.getSeatStatusId().get(i));
-            if (seatStatusOptional.isPresent() && "taken".equals(seatStatusOptional.get().getStatus())){
-                throw new IllegalArgumentException("座位已有人預訂，請重新選擇座位");
-            }
+        // 檢查影城、場次是否存在
+        Optional<Theaters> theatersOptional = theaterRepository.findById(orderDto.getTheaterId());
+        Optional<ShowTime> showTimeOptional = showTimeRepository.findById(orderDto.getShowTimeId());
+        if (theatersOptional.isEmpty() || showTimeOptional.isEmpty()){
+            throw new RuntimeException("場次不存在，請重新選擇場次");
         }
 
+        // 檢查座位是否存在 && ( 檢查座位是否沒有payStatus資料 || 檢查座位最新一筆payStatus是否為"已退款" || 檢查座位最新一筆payStatus是否為"付款失敗" )
+        for (Integer seatStatusId : orderDto.getSeatStatusId()) {
+            SeatStatus seatStatus = seatStatusRepository.findById(seatStatusId)
+                    .orElseThrow(() -> new IllegalArgumentException("座位不存在，請重新選擇"));
+
+            List<String> payStatusList = seatStatusRepository.getPayStatusById(seatStatusId);
+            if (!payStatusList.isEmpty()) {
+                String latestPayStatus = payStatusList.get(0);
+                if (!"已退款".equals(latestPayStatus) && !"付款失敗".equals(latestPayStatus)) {
+                    throw new IllegalArgumentException("座位已有人預訂，請重新選擇座位");
+                }
+            }
+        }
+    }
+
+    @Transactional
+    public Map<String, String> createOrder(OrderDto orderDto, Integer movieId) {
         // 計算總金額和總扣除紅利
         int totalPrice = 0;
         int reduceBonusPoint = 0;
@@ -211,7 +237,7 @@ public class OrderService {
         payment.setPayTime(now);
         payment.setModifyTime(now);
         payment.setTradeNum(callbackData.get("TradeNo"));
-        payment.setPaymentForm("");
+        payment.setPaymentForm(null);
         paymentRepository.save(payment);
 
         // 訂單成功，產生紅利
@@ -226,34 +252,27 @@ public class OrderService {
     public void paymentFailure(Hashtable<String, String> callbackData) {
         String orderNum = callbackData.get("MerchantTradeNo");
 
-        Optional<Orders> ordersOptional = orderRepository.findByOrderNum(orderNum);
-        if (ordersOptional.isEmpty()) {
-            throw new RuntimeException("訂單不存在");
-        }
+        Orders orders = orderRepository.findByOrderNum(orderNum)
+                .orElseThrow(() -> new RuntimeException("訂單不存在"));
 
-        Orders orders = ordersOptional.get();
-        Optional<Payment> paymentOptional = paymentRepository.findByOrdersId(orders.getId());
+        Payment payment = paymentRepository.findByOrdersId(orders.getId())
+                .orElseThrow(() -> new RuntimeException("付款紀錄不存在"));
 
-        if (paymentOptional.isEmpty()) {
-            throw new RuntimeException("付款紀錄不存在");
-        }
-
-        Payment payment = paymentOptional.get();
         Date now = new Date();
         PaymentTypeConverter paymentTypeConverter = new PaymentTypeConverter();
         String paymentType = callbackData.get("PaymentType");
         String processedPaymentType = paymentTypeConverter.getProcessedPaymentType(paymentType);
 
+        // 更新付款紀錄
         payment.setPayway(processedPaymentType);
         payment.setPayStatus("付款失敗");
         payment.setModifyTime(now);
         payment.setTradeNum(callbackData.get("TradeNo"));
-        payment.setPaymentForm("");
+        payment.setPaymentForm(null);
         paymentRepository.save(payment);
 
         // 紅利購票時，退回紅利點數
         List<Bonus> bonusList = bonusRepository.findByPaymentId(payment.getId());
-
         if (!bonusList.isEmpty()) {
             Bonus bonusRecord = bonusList.get(0);
 
@@ -270,186 +289,18 @@ public class OrderService {
             System.out.println("該筆訂單未使用紅利點數購票");
         }
 
-        // 刪除電影票、清空座位狀態
+        // 更新座位狀態
         List<Tickets> ticketsList = ticketRepository.findByOrdersId(orders.getId());
-
-        if (ticketsList.isEmpty()) {
-            throw new RuntimeException("電影票不存在");
-        }
-
-        ticketsList.forEach(tickets -> {
-            try {
-                seatStatusRepository.deleteById(tickets.getSeatStatusId());
-            } catch (Exception e) {
-                System.out.println("座位狀態刪除失敗: " + e.getMessage());
-            }
-            ticketRepository.deleteById(tickets.getId());
-        });
-    }
-
-    //此處待後台實作退款才可以測試
-    public boolean checkBuyTicketsOnlyUseBonus(Integer ordersId) {
-        Optional<Orders> ordersOptional = orderRepository.findById(ordersId);
-
-        if (ordersOptional.isEmpty()) {
-            throw new RuntimeException("訂單不存在");
-        }
-
-        // 檢查是不是僅用紅利購票
-        return ordersOptional.get().getTotalAmount().equals(0);
-    }
-
-
-    public void onlyRefundBonus(Integer ordersId) {
-        Optional<Payment> paymentOptional = paymentRepository.findByOrdersId(ordersId);
-
-        if (paymentOptional.isEmpty()) {
-            throw new RuntimeException("付款紀錄不存在");
-        }
-
-        List<Bonus> bonusList = bonusRepository.findByPaymentId(paymentOptional.get().getId());
-
-        if (bonusList.isEmpty()) {
-            throw new RuntimeException("紅利單號不存在");
-        }
-
-        // 退回紅利點數
-        Date now = new Date();
-        Bonus bonus = new Bonus();
-        bonus.setPaymentId(bonusList.get(0).getPaymentId());
-        bonus.setBonus(bonusList.get(0).getBonus() * -1);
-        bonus.setModifyTime(now);
-        bonusRepository.save(bonus);
-    }
-
-
-    //建立退款單
-    public Map<String, String> createRefund(Integer ordersId){
-        Optional<Orders> ordersOptional = orderRepository.findById(ordersId);
-        Optional<Payment> paymentOptional = paymentRepository.findByOrdersId(ordersId);
-
-        if (ordersOptional.isEmpty() || paymentOptional.isEmpty()) {
-            throw new RuntimeException("訂單不存在");
-        }
-
-        //是否需要返還紅利點數
-        boolean isReturnBonus = true;
-
-        //紅利點數等值金額 (會員將紅利點數使用掉，導致返還會變成負數)
-        int bonusEquivalentAmount = 0;
-
-        Orders orders = ordersOptional.get();
-        Payment payment = paymentOptional.get();
-        Optional<User> userOptional = userRepository.findById(orders.getUserId());
-
-        if (userOptional.isEmpty()) {
-            throw new RuntimeException("會員不存在");
-        }
-
-        User user = userOptional.get();
-
-        //計算退款後，會員總紅利點數 (在此先取得會員身上紅利點數)
-        Integer estimatedBonusAfterReturn = user.getBonusPoint();
-
-        List<Bonus> bonusList = bonusRepository.findByPaymentId(payment.getId());
-
-        if (bonusList.isEmpty()) {
-            throw new RuntimeException("紅利紀錄不存在");
-        }
-
-        //會員當前紅利 + 紅利點數購票 + 購票產生紅利
-        //計算退款後，因此"紅利點數購票、購票產生紅利" * -1
-        for (Bonus bonus : bonusList) {
-            estimatedBonusAfterReturn -= bonus.getBonus();
-            bonusEquivalentAmount -= bonus.getBonus();
-        }
-
-        if (estimatedBonusAfterReturn < 0) {
-            isReturnBonus = false;
-        }
-
-        AllInOne allInOne = new AllInOne("");
-        DoActionObj doActionObj = new DoActionObj();
-
-        doActionObj.setMerchantID("3002607");
-        doActionObj.setMerchantTradeNo(orders.getOrderNum());
-        doActionObj.setTradeNo(payment.getTradeNum());
-        doActionObj.setAction("R");
-        doActionObj.setTotalAmount(isReturnBonus ? orders.getTotalAmount().toString() :
-                String.valueOf(orders.getTotalAmount() + bonusEquivalentAmount));
-        doActionObj.setPlatformID("");
-
-        String response = allInOne.doAction(doActionObj);
-
-        // 返回訂單詳情
-        Map<String, String> refundDetail = new HashMap<>();
-        refundDetail.put("response", response);
-        refundDetail.put("isReturnBonus", String.valueOf(isReturnBonus));
-
-        return refundDetail;
-    }
-
-
-    //*****POST給綠界退款請求，直接接收回調參數，異動資料庫*****
-    @Transactional
-    public void handleRefundResponse(Map<String, String> refundDetail) {
-        // 解析response
-        JSONObject jsonResponse = new JSONObject(refundDetail.get("response"));
-        String merchantTradeNo = jsonResponse.getString("MerchantTradeNo");
-        String rtnCode = jsonResponse.getString("RtnCode");
-        String tradeNo = jsonResponse.getString("TradeNo");
-        boolean isReturnBonus = Boolean.parseBoolean(refundDetail.get("isReturnBonus"));
-
-        Optional<Orders> ordersOptional = orderRepository.findByOrderNum(merchantTradeNo);
-
-        if (ordersOptional.isEmpty()) {
-            throw new RuntimeException("訂單不存在");
-        }
-
-        Orders orders = ordersOptional.get();
-        Date now = new Date();
-
-        Payment payment = new Payment();
-        payment.setOrdersId(orders.getId());
-        payment.setPayway("信用卡");
-        payment.setPayStatus("1".equals(rtnCode) ? "已退款" : "退款失敗");
-        payment.setPayTime(now);
-        payment.setMethod("退款");
-        payment.setModifyTime(now);
-        payment.setTradeNum(tradeNo);
-        paymentRepository.save(payment);
-
-        // 退回紅利點數
-        if (isReturnBonus) {
-            List<Bonus> bonusList = bonusRepository.getBonusByOrderNumAndMethod(merchantTradeNo, "付款");
-
-            if (bonusList.isEmpty()) {
-                throw new RuntimeException("紅利紀錄不存在");
-            }
-
-            for (Bonus bonus : bonusList) {
-                Bonus returnBonus = new Bonus();
-                returnBonus.setPaymentId(payment.getId());
-                returnBonus.setBonus(bonus.getBonus() * -1);
-                returnBonus.setModifyTime(now);
-                bonusRepository.save(returnBonus);
-            }
-        }
-
-        // 刪除電影票、清空座位狀態
-        List<Tickets> ticketsList = ticketRepository.findByOrdersId(orders.getId());
-
         if (ticketsList.isEmpty()) {
             throw new RuntimeException("電影票不存在");
         }
 
         for (Tickets ticket : ticketsList) {
-            try {
-                seatStatusRepository.deleteById(ticket.getSeatStatusId());
-            } catch (Exception e) {
-                throw new RuntimeException("座位狀態刪除失敗: " + e.getMessage());
-            }
-            ticketRepository.deleteById(ticket.getId());
+            SeatStatus seatStatus = seatStatusRepository.findById(ticket.getSeatStatusId())
+                    .orElseThrow(() -> new RuntimeException("座位不存在"));
+
+            seatStatus.setStatus("available");
+            seatStatusRepository.save(seatStatus);
         }
     }
 }

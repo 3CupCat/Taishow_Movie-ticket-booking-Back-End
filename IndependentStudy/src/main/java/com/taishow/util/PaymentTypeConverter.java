@@ -1,4 +1,4 @@
-package com.taishow.myutil;
+package com.taishow.util;
 
 import java.util.HashMap;
 import java.util.Map;

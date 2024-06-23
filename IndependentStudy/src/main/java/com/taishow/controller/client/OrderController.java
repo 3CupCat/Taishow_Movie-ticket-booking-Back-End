@@ -1,8 +1,8 @@
-package com.taishow.controller;
+package com.taishow.controller.client;
 
 import com.taishow.dto.OrderDto;
 import com.taishow.entity.TicketType;
-import com.taishow.service.OrderService;
+import com.taishow.service.client.OrderService;
 import ecpay.payment.integration.AllInOne;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,9 +35,13 @@ public class OrderController {
     public ResponseEntity<String> createOrder(@RequestBody OrderDto orderDto,
                                               @PathVariable Integer movieId){
         try {
+            // 檢查訂單資訊
+            orderService.checkOrderInformation(orderDto, movieId);
+
+            // 訂單寫入資料庫
             Map<String, String> orderDetail = orderService.createOrder(orderDto, movieId);
 
-            //僅使用紅利點數購票，不須送綠界付款
+            // 僅使用紅利點數購票，不須送綠界付款
             if ("0".equals(orderDetail.get("totalPrice"))){
                 return ResponseEntity.status(HttpStatus.CREATED).build();
             }
@@ -68,26 +72,6 @@ public class OrderController {
             } else {
                 orderService.paymentFailure(hashtable);
                 return ResponseEntity.status(HttpStatus.OK).body("PaymentFailure");
-            }
-        } catch (Exception e){
-            System.out.println(e);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("建立訂單失敗: " + e.getMessage());
-        }
-    }
-
-    //測試退款功能 (後台路徑尚未決定)
-    @PostMapping("/refund/{ordersId}")
-    public ResponseEntity<String> createRefund(@PathVariable Integer ordersId){
-        try {
-            if (orderService.checkBuyTicketsOnlyUseBonus(ordersId)){
-                //不須退款，僅退回紅利點數
-                orderService.onlyRefundBonus(ordersId);
-                return ResponseEntity.status(HttpStatus.OK).build();
-            } else {
-                //需要退款，送綠界退款API
-                Map<String, String> refundDetail = orderService.createRefund(ordersId);
-                orderService.handleRefundResponse(refundDetail);
-                return ResponseEntity.status(HttpStatus.OK).build();
             }
         } catch (Exception e){
             System.out.println(e);

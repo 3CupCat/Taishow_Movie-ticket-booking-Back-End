@@ -1,10 +1,7 @@
-package com.taishow.service;
+package com.taishow.service.client;
 
 import com.taishow.dao.TheaterRepository;
-import com.taishow.dto.Result;
-import com.taishow.dto.TheaterDto;
 import com.taishow.entity.Theaters;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
