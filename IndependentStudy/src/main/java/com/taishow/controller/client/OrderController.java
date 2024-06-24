@@ -65,6 +65,10 @@ public class OrderController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid CheckMacValue");
         }
 
+        if (orderService.isOrderCancel(hashtable)){
+            return ResponseEntity.status(HttpStatus.OK).body("The order has been cancelled. If you have any questions, please contact customer service");
+        }
+
         try {
             if ("1".equals(callbackData.get("RtnCode"))){
                 orderService.paymentSuccess(hashtable);

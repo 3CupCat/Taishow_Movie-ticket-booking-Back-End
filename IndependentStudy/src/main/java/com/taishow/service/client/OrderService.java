@@ -14,7 +14,10 @@ import org.json.JSONObject;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 
 @Service
@@ -77,7 +80,7 @@ public class OrderService {
             throw new RuntimeException("場次不存在，請重新選擇場次");
         }
 
-        // 檢查座位是否存在 && ( 檢查座位是否沒有payStatus資料 || 檢查座位最新一筆payStatus是否為"已退款" || 檢查座位最新一筆payStatus是否為"付款失敗" )
+        // 檢查座位是否存在 && ( 檢查座位是否沒有payStatus資料 || 檢查座位最新一筆payStatus是否為"已退款" || "付款失敗" || "已取消" )
         for (Integer seatStatusId : orderDto.getSeatStatusId()) {
             SeatStatus seatStatus = seatStatusRepository.findById(seatStatusId)
                     .orElseThrow(() -> new IllegalArgumentException("座位不存在，請重新選擇"));
@@ -85,7 +88,7 @@ public class OrderService {
             List<String> payStatusList = seatStatusRepository.getPayStatusById(seatStatusId);
             if (!payStatusList.isEmpty()) {
                 String latestPayStatus = payStatusList.get(0);
-                if (!"已退款".equals(latestPayStatus) && !"付款失敗".equals(latestPayStatus)) {
+                if (!"已退款".equals(latestPayStatus) && !"付款失敗".equals(latestPayStatus) && !"已取消".equals(latestPayStatus)) {
                     throw new IllegalArgumentException("座位已有人預訂，請重新選擇座位");
                 }
             }
@@ -302,5 +305,93 @@ public class OrderService {
             seatStatus.setStatus("available");
             seatStatusRepository.save(seatStatus);
         }
+    }
+
+    public boolean isOrderCancel(Hashtable<String, String> callbackData){
+        String orderNum = callbackData.get("MerchantTradeNo");
+        Payment payment = paymentRepository.getPaymentByOrderNum(orderNum)
+                .orElseThrow(() -> new RuntimeException("付款紀錄不存在"));
+
+        return "已取消".equals(payment.getPayStatus());
+    }
+
+    public void checkAndCancelOrders() {
+        List<Object[]> results = orderRepository.findPendingOrders();
+        LocalDateTime now = LocalDateTime.now();
+
+        for (Object[] result : results) {
+            try {
+                String orderNum = (String) result[0];
+                LocalDateTime showTime = convertToLocalDateTime(result[1]);
+
+                Orders order = orderRepository.findByOrderNum(orderNum)
+                        .orElseThrow(() -> new RuntimeException("訂單不存在"));
+
+                LocalDateTime orderDate = convertToLocalDateTime(order.getOrderDate());
+
+                if (orderDate.plusMinutes(30).isBefore(now) || now.isAfter(showTime)) {
+                    Payment payment = paymentRepository.findByOrdersId(order.getId())
+                            .orElseThrow(() -> new RuntimeException("付款紀錄不存在"));
+
+                    Date modifyTime = new Date();
+
+                    // 更新付款紀錄
+                    payment.setPayStatus("已取消");
+                    payment.setModifyTime(modifyTime);
+                    payment.setPaymentForm(null);
+                    paymentRepository.save(payment);
+
+                    // 紅利購票時，退回紅利點數
+                    List<Bonus> bonusList = bonusRepository.findByPaymentId(payment.getId());
+                    if (!bonusList.isEmpty()) {
+                        Bonus bonusRecord = bonusList.get(0);
+
+                        // 將扣除的bonus變回正數
+                        Integer revertBonus = Math.abs(bonusRecord.getBonus());
+
+                        // 寫入一筆退回的紀錄
+                        Bonus bonus = new Bonus();
+                        bonus.setPaymentId(payment.getId());
+                        bonus.setBonus(revertBonus);
+                        bonus.setModifyTime(modifyTime);
+                        bonusRepository.save(bonus);
+                    } else {
+                        System.out.println("該筆訂單未使用紅利點數購票");
+                    }
+
+                    // 更新座位狀態
+                    List<Tickets> ticketsList = ticketRepository.findByOrdersId(order.getId());
+                    if (ticketsList.isEmpty()) {
+                        throw new RuntimeException("電影票不存在");
+                    }
+
+                    for (Tickets ticket : ticketsList) {
+                        SeatStatus seatStatus = seatStatusRepository.findById(ticket.getSeatStatusId())
+                                .orElseThrow(() -> new RuntimeException("座位不存在"));
+
+                        seatStatus.setStatus("available");
+                        seatStatusRepository.save(seatStatus);
+                    }
+                }
+            } catch (Exception e) {
+                System.out.println("尋訪訂單失敗: " + e.getMessage());
+            }
+        }
+    }
+
+    private LocalDateTime convertToLocalDateTime(Object timestamp) {
+        if (timestamp instanceof Timestamp) {
+            return ((Timestamp) timestamp).toLocalDateTime();
+        } else if (timestamp instanceof Date) {
+            return new Timestamp(((Date) timestamp).getTime()).toLocalDateTime();
+        } else {
+            throw new IllegalArgumentException("Unsupported timestamp type: " + timestamp.getClass().getName());
+        }
+    }
+
+    private LocalDateTime convertToLocalDateTime(Date date) {
+        return date.toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDateTime();
     }
 }

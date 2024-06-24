@@ -70,4 +70,13 @@ public interface OrderRepository extends JpaRepository<Orders, Integer> {
             "GROUP BY o.orderNum, u.account, o.totalAmount, p.payway, p.payStatus, st.showTime, o.id " +
             "ORDER BY o.orderNum DESC")
     public List<Object[]> getAllOrderRecordAndShowTimeByMethod(@Param("method") String method);
+
+    @Query("SELECT DISTINCT o.orderNum, st.showTime " +
+            "FROM Orders o " +
+            "JOIN Payment p ON o.id = p.ordersId " +
+            "JOIN Tickets t ON o.id = t.ordersId " +
+            "JOIN SeatStatus ss ON t.seatStatusId = ss.id " +
+            "JOIN ShowTime st ON ss.showTimeId = st.id " +
+            "WHERE p.payStatus = '未付款'")
+    public List<Object[]> findPendingOrders();
 }
