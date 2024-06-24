@@ -11,32 +11,44 @@ public class Movie {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
 
+    @Column(name = "title", nullable = false, length = 50)
     private String title;
 
-    @Column(name = "title_english")
+    @Column(name = "title_english", nullable = false, length = 50)
     private String titleEnglish;
 
+    @Column(name = "rating", nullable = false, length = 20)
     private String rating;
 
-    @Column(name = "runtime")
-    private Integer runTime;
+    @Column(name = "runtime", nullable = false)
+    private Integer runtime;
 
+    @Column(name = "genre", nullable = false, length = 100)
     private String genre;
 
-    @Column(name = "release_date")
+    @Column(name = "release_date", nullable = false)
     private Date releaseDate;
 
+    @Column(name = "director", nullable = false, length = 50)
     private String director;
+
+    @Column(name = "synopsis", columnDefinition = "TEXT")
     private String synopsis;
+
+    @Column(name = "language", nullable = false, length = 50)
     private String language;
+
+    @Column(name = "trailer", nullable = false, length = 255)
     private String trailer;
+
+    @Column(name = "poster", columnDefinition = "LONGTEXT")
     private String poster;
 
-//    @Column(name = "is_out_theater")
-//    private boolean isOutTheater;
-//
-//    @Column(name = "is_playing")
-//    private boolean isPlaying;
+    @Column(name = "is_playing", nullable = false)
+    private boolean isPlaying;
+
+    @Column(name = "is_homepage_trailer", nullable = false)
+    private boolean isHomepageTrailer;
 
     public Integer getId() {
         return id;
@@ -44,14 +56,6 @@ public class Movie {
 
     public void setId(Integer id) {
         this.id = id;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
     }
 
     public String getTitleEnglish() {
@@ -62,6 +66,14 @@ public class Movie {
         this.titleEnglish = titleEnglish;
     }
 
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
     public String getRating() {
         return rating;
     }
@@ -70,12 +82,12 @@ public class Movie {
         this.rating = rating;
     }
 
-    public Integer getRunTime() {
-        return runTime;
+    public Integer getRuntime() {
+        return runtime;
     }
 
-    public void setRunTime(Integer runTime) {
-        this.runTime = runTime;
+    public void setRuntime(Integer runtime) {
+        this.runtime = runtime;
     }
 
     public String getGenre() {
@@ -132,5 +144,21 @@ public class Movie {
 
     public void setPoster(String poster) {
         this.poster = poster;
+    }
+
+    public boolean isPlaying() {
+        return isPlaying;
+    }
+
+    public void setPlaying(boolean playing) {
+        isPlaying = playing;
+    }
+
+    public boolean isHomepageTrailer() {
+        return isHomepageTrailer;
+    }
+
+    public void setHomepageTrailer(boolean homepageTrailer) {
+        isHomepageTrailer = homepageTrailer;
     }
 }
