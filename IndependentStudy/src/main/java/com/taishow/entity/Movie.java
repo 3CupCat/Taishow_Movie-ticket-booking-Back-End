@@ -78,20 +78,20 @@ public class Movie {
         this.runTime = runTime;
     }
 
-    public Date getReleaseDate() {
-        return releaseDate;
-    }
-
-    public void setReleaseDate(Date releaseDate) {
-        this.releaseDate = releaseDate;
-    }
-
     public String getGenre() {
         return genre;
     }
 
     public void setGenre(String genre) {
         this.genre = genre;
+    }
+
+    public Date getReleaseDate() {
+        return releaseDate;
+    }
+
+    public void setReleaseDate(Date releaseDate) {
+        this.releaseDate = releaseDate;
     }
 
     public String getDirector() {
@@ -102,14 +102,6 @@ public class Movie {
         this.director = director;
     }
 
-    public String getLanguage() {
-        return language;
-    }
-
-    public void setLanguage(String language) {
-        this.language = language;
-    }
-
     public String getSynopsis() {
         return synopsis;
     }
@@ -118,12 +110,12 @@ public class Movie {
         this.synopsis = synopsis;
     }
 
-    public String getPoster() {
-        return poster;
+    public String getLanguage() {
+        return language;
     }
 
-    public void setPoster(String poster) {
-        this.poster = poster;
+    public void setLanguage(String language) {
+        this.language = language;
     }
 
     public String getTrailer() {
@@ -132,5 +124,13 @@ public class Movie {
 
     public void setTrailer(String trailer) {
         this.trailer = trailer;
+    }
+
+    public String getPoster() {
+        return poster;
+    }
+
+    public void setPoster(String poster) {
+        this.poster = poster;
     }
 }
