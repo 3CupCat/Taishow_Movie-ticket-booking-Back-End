@@ -1,10 +1,7 @@
-package com.taishow.controller;
+package com.taishow.controller.client;
 
-import com.taishow.dto.Result;
-import com.taishow.dto.TheaterDto;
 import com.taishow.entity.Theaters;
-import com.taishow.service.TheaterService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.taishow.service.client.TheaterService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
