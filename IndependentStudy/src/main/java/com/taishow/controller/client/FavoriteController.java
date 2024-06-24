@@ -1,8 +1,8 @@
 package com.taishow.controller.client;
 
+import com.taishow.service.client.FavoriteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import org.web.service.FavoriteService;
 
 import java.util.List;
 import java.util.Map;
