@@ -101,14 +101,12 @@ public class OrderService {
         int totalPrice = 0;
         int reduceBonusPoint = 0;
 
-        //todo start
-        // 會員持有紅利點數 (之後有JWT時，改為從user表獲取)
+        // 會員持有紅利點數 (從user表獲取)
         int userBonusPoint = 0;
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("錯誤的會員資訊，請刷新頁面再試"));
 
         userBonusPoint = user.getBonusPoint();
-        //todo end
 
         for (int i = 0; i < orderDto.getSeatStatusId().size(); i++) {
             TicketType ticketType = ticketTypeRepository.findById(orderDto.getTicketTypeId().get(i))

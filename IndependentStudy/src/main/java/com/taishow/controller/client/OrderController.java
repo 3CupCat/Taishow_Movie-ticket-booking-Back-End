@@ -3,6 +3,7 @@ package com.taishow.controller.client;
 import com.taishow.dto.OrderDto;
 import com.taishow.entity.TicketType;
 import com.taishow.service.client.OrderService;
+import com.taishow.util.JwtUtil;
 import ecpay.payment.integration.AllInOne;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,10 +16,13 @@ import java.util.Map;
 @RestController
 public class OrderController {
 
-    private OrderService orderService;
+    private final OrderService orderService;
 
-    public OrderController(OrderService orderService) {
+    private final JwtUtil jwtUtil;
+
+    public OrderController(OrderService orderService, JwtUtil jwtUtil) {
         this.orderService = orderService;
+        this.jwtUtil = jwtUtil;
     }
 
     @GetMapping("/booking/{movieId}/order")
@@ -32,22 +36,17 @@ public class OrderController {
     }
 
     @PostMapping("/booking/{movieId}/order")
-    public ResponseEntity<String> createOrder(@RequestBody OrderDto orderDto,
+    public ResponseEntity<String> createOrder(@RequestHeader("Authorization") String token,
+                                              @RequestBody OrderDto orderDto,
                                               @PathVariable Integer movieId){
         try {
-            //todo start
-            // 先Hardcode, 未來從JWT Get
-            // @RequestHeader("Authorization") String token
-            // Integer userId = null;
-            // if (token != null && token.startsWith("Bearer ")) {
-            //     token = token.substring(7);
-            //     userId = jwtUtil.getUserIdFromToken(token);
-            // } else {
-            //     throw new IllegalArgumentException("Invalid Authorization header");
-            // }
-
-            Integer userId = 1;
-            //todo end
+             Integer userId = null;
+             if (token != null && token.startsWith("Bearer ")) {
+                 token = token.substring(7);
+                 userId = jwtUtil.getUserIdFromToken(token);
+             } else {
+                 throw new IllegalArgumentException("Invalid Authorization header");
+             }
 
             // 檢查訂單資訊
             orderService.checkOrderInformation(orderDto, movieId);
