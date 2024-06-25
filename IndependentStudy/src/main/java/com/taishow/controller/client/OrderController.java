@@ -35,11 +35,25 @@ public class OrderController {
     public ResponseEntity<String> createOrder(@RequestBody OrderDto orderDto,
                                               @PathVariable Integer movieId){
         try {
+            //todo start
+            // 先Hardcode, 未來從JWT Get
+            // @RequestHeader("Authorization") String token
+            // Integer userId = null;
+            // if (token != null && token.startsWith("Bearer ")) {
+            //     token = token.substring(7);
+            //     userId = jwtUtil.getUserIdFromToken(token);
+            // } else {
+            //     throw new IllegalArgumentException("Invalid Authorization header");
+            // }
+
+            Integer userId = 1;
+            //todo end
+
             // 檢查訂單資訊
             orderService.checkOrderInformation(orderDto, movieId);
 
             // 訂單寫入資料庫
-            Map<String, String> orderDetail = orderService.createOrder(orderDto, movieId);
+            Map<String, String> orderDetail = orderService.createOrder(orderDto, movieId, userId);
 
             // 僅使用紅利點數購票，不須送綠界付款
             if ("0".equals(orderDetail.get("totalPrice"))){
@@ -63,6 +77,10 @@ public class OrderController {
 
         if (!allInOne.compareCheckMacValue(hashtable)){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid CheckMacValue");
+        }
+
+        if (orderService.isOrderCancel(hashtable)){
+            return ResponseEntity.status(HttpStatus.OK).body("The order has been cancelled. If you have any questions, please contact customer service");
         }
 
         try {
