@@ -10,4 +10,5 @@ import java.util.List;
 public interface MovieRepository extends JpaRepository<Movie, Integer> {
     List<Movie> findByIsPlaying(boolean isPlaying);
     List<Movie> findByIsHomepageTrailer(boolean isHomepageTrailer);
+    List<Movie> findByTitleContainingIgnoreCase(String title);
 }

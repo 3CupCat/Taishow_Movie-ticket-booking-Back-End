@@ -2,7 +2,9 @@ package com.taishow.controller.client;
 
 import com.taishow.entity.Movie;
 import com.taishow.service.client.MovieService;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -87,6 +89,17 @@ public class MovieController {
         List<Movie> trailers = movieService.getHomepageTrailers();
         if (!trailers.isEmpty()) {
             return ResponseEntity.status(HttpStatus.OK).body(trailers);
+        } else {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        }
+    }
+    @GetMapping("/movies/search")
+    public ResponseEntity<List<Movie>> searchMovies(@RequestParam String query) {
+        List<Movie> movies = movieService.searchMovies(query);
+        if (!movies.isEmpty()) {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            return new ResponseEntity<>(movies, headers, HttpStatus.OK);
         } else {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }

@@ -31,15 +31,17 @@ public class BonusService {
             Orders order = (Orders) result[0];
             Payment payment = (Payment) result[1];
             Tickets ticket = (Tickets) result[2];
-            ShowTime showtime = (ShowTime) result[3];
-            Movie movie = (Movie) result[4];
-            Screen screen = (Screen) result[5];
-            Theaters theater = result.length > 6 && result[6] instanceof Theaters ? (Theaters) result[6] : null;
-            Bonus bonus = result.length > 7 && result[7] instanceof Bonus ? (Bonus) result[7] : null;
+            SeatStatus seatStatus = (SeatStatus) result[3]; // 修改这里
+            ShowTime showtime = (ShowTime) result[4];
+            Movie movie = (Movie) result[5];
+            Screen screen = (Screen) result[6];
+            Theaters theater = result.length > 7 && result[7] instanceof Theaters ? (Theaters) result[7] : null;
+            Bonus bonus = result.length > 8 && result[8] instanceof Bonus ? (Bonus) result[8] : null;
 
             orderPaymentTicketShowtimeMovieScreenTheaterBonusMap.put("order", order);
             orderPaymentTicketShowtimeMovieScreenTheaterBonusMap.put("payment", payment);
             orderPaymentTicketShowtimeMovieScreenTheaterBonusMap.put("ticket", ticket);
+            orderPaymentTicketShowtimeMovieScreenTheaterBonusMap.put("seatStatus", seatStatus); // 添加 seatStatus
             orderPaymentTicketShowtimeMovieScreenTheaterBonusMap.put("showtime", showtime);
             orderPaymentTicketShowtimeMovieScreenTheaterBonusMap.put("movie", movie);
             orderPaymentTicketShowtimeMovieScreenTheaterBonusMap.put("screen", screen);

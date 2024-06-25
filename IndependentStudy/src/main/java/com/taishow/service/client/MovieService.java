@@ -99,5 +99,7 @@ public class MovieService {
     public List<Movie> getHomepageTrailers() {
         return movieRepository.findByIsHomepageTrailer(true);
     }
-
+    public List<Movie> searchMovies(String query) {
+        return movieRepository.findByTitleContainingIgnoreCase(query);
+    }
 }

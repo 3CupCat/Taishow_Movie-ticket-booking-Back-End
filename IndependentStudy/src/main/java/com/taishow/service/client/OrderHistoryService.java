@@ -39,53 +39,42 @@ public class OrderHistoryService {
             return new Result(9999, "no data");
         }
     }
-//    public List<Map<String, Object>> getOrdersAndPaymentByToken(String token) {
-//        Integer userId = jwtUtil.getUserIdFromToken(token);
-//        List<Object[]> results = orderDao.findOrdersAndPaymentByUserId(userId);
-//
-//        List<Map<String, Object>> orderPaymentList = new ArrayList<>();
-//        for (Object[] result : results) {
-//            Map<String, Object> orderPaymentMap = new HashMap<>();
-//            Orders order = (Orders) result[0];
-//            Payment payment = (Payment) result[1];
-//            orderPaymentMap.put("order", order);
-//            orderPaymentMap.put("payment", payment);
-//            orderPaymentList.add(orderPaymentMap);
-//        }
-//        return orderPaymentList;
-//    }
-public List<Map<String, Object>> getOrdersPaymentsTicketsShowtimeMovieScreenAndTheaterByToken(String token) {
-    Integer userId = jwtUtil.getUserIdFromToken(token);
-    List<Object[]> results = orderDao.findOrdersWithPaymentsTicketsShowtimeMovieScreenAndTheaterByUserId(userId);
 
-    List<Map<String, Object>> orderPaymentTicketShowtimeMovieScreenTheaterList = new ArrayList<>();
-    for (Object[] result : results) {
-        // Logging the result length and contents for debugging
-        System.out.println("Result length: " + result.length);
-        for (Object obj : result) {
-            System.out.println(obj);
+    public List<Map<String, Object>> getOrdersPaymentsTicketsShowtimeMovieScreenAndTheaterByToken(String token) {
+        Integer userId = jwtUtil.getUserIdFromToken(token);
+        List<Object[]> results = orderDao.findOrdersWithPaymentsTicketsShowtimeMovieScreenAndTheaterByUserId(userId);
+
+        List<Map<String, Object>> orderPaymentTicketShowtimeMovieScreenTheaterList = new ArrayList<>();
+        for (Object[] result : results) {
+            // Logging the result length and contents for debugging
+            System.out.println("Result length: " + result.length);
+            for (Object obj : result) {
+                System.out.println(obj);
+            }
+
+            Map<String, Object> orderPaymentTicketShowtimeMovieScreenTheaterMap = new HashMap<>();
+
+            Orders order = (Orders) result[0];
+            Payment payment = (Payment) result[1];
+            Tickets ticket = (Tickets) result[2];
+            SeatStatus seatStatus = (SeatStatus) result[3];  // 正確解析 SeatStatus
+            ShowTime showtime = (ShowTime) result[4];
+            Movie movie = (Movie) result[5];
+            Screen screen = (Screen) result[6];
+            Theaters theater = result.length > 7 && result[7] instanceof Theaters ? (Theaters) result[7] : null;
+
+            orderPaymentTicketShowtimeMovieScreenTheaterMap.put("order", order);
+            orderPaymentTicketShowtimeMovieScreenTheaterMap.put("payment", payment);
+            orderPaymentTicketShowtimeMovieScreenTheaterMap.put("ticket", ticket);
+            orderPaymentTicketShowtimeMovieScreenTheaterMap.put("seatStatus", seatStatus);  // 加入 seatStatus 到 Map 中
+            orderPaymentTicketShowtimeMovieScreenTheaterMap.put("showtime", showtime);
+            orderPaymentTicketShowtimeMovieScreenTheaterMap.put("movie", movie);
+            orderPaymentTicketShowtimeMovieScreenTheaterMap.put("screen", screen);
+            orderPaymentTicketShowtimeMovieScreenTheaterMap.put("theater", theater);
+
+            orderPaymentTicketShowtimeMovieScreenTheaterList.add(orderPaymentTicketShowtimeMovieScreenTheaterMap);
         }
-
-        Map<String, Object> orderPaymentTicketShowtimeMovieScreenTheaterMap = new HashMap<>();
-
-        Orders order = (Orders) result[0];
-        Payment payment = (Payment) result[1];
-        Tickets ticket = (Tickets) result[2];
-        ShowTime showtime = (ShowTime) result[3];
-        Movie movie = (Movie) result[4];
-        Screen screen = (Screen) result[5];
-        Theaters theater = result.length > 6 && result[6] instanceof Theaters ? (Theaters) result[6] : null;
-
-        orderPaymentTicketShowtimeMovieScreenTheaterMap.put("order", order);
-        orderPaymentTicketShowtimeMovieScreenTheaterMap.put("payment", payment);
-        orderPaymentTicketShowtimeMovieScreenTheaterMap.put("ticket", ticket);
-        orderPaymentTicketShowtimeMovieScreenTheaterMap.put("showtime", showtime);
-        orderPaymentTicketShowtimeMovieScreenTheaterMap.put("movie", movie);
-        orderPaymentTicketShowtimeMovieScreenTheaterMap.put("screen", screen);
-        orderPaymentTicketShowtimeMovieScreenTheaterMap.put("theater", theater);
-
-        orderPaymentTicketShowtimeMovieScreenTheaterList.add(orderPaymentTicketShowtimeMovieScreenTheaterMap);
+        return orderPaymentTicketShowtimeMovieScreenTheaterList;
     }
-    return orderPaymentTicketShowtimeMovieScreenTheaterList;
-}
+
 }
