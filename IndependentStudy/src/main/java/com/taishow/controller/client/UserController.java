@@ -190,7 +190,9 @@ public class UserController {
             if (userInfo.getBirthday() != null) {
                 user.setBirthday(userInfo.getBirthday());
             }
-
+            if (userInfo.getPhoto() != null) {
+                user.setPhoto(userInfo.getPhoto());
+            }
             userDao.save(user);
 
             return ResponseEntity.ok("用戶信息更新成功");
@@ -198,7 +200,23 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("用戶未找到");
         }
     }
+    @PutMapping("/upload-photo")
+    public ResponseEntity<String> uploadPhoto(HttpServletRequest request, @RequestBody String photo) {
+        String token = request.getHeader("Authorization").substring(7);
+        Integer userId = jwtUtil.getUserIdFromToken(token);
 
+        Optional<User> optionalUser = userDao.findById(userId);
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            user.setPhoto(photo);
+
+            userDao.save(user);
+
+            return ResponseEntity.ok("用戶照片更新成功");
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("用戶未找到");
+        }
+    }
     @PostMapping("/change-password")
     public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest changePasswordRequest, HttpServletRequest request) {
         String token = request.getHeader("Authorization").substring(7);
