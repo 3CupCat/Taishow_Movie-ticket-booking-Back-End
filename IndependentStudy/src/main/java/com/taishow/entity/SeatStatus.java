@@ -2,6 +2,8 @@ package com.taishow.entity;
 
 import jakarta.persistence.*;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "seat_status")
 public class SeatStatus {
@@ -17,6 +19,17 @@ public class SeatStatus {
     private Integer showTimeId;
 
     private String status;
+
+    @Column(name = "create_at")
+    private LocalDateTime createAt;
+
+    public LocalDateTime getCreateAt() {
+        return createAt;
+    }
+
+    public void setCreateAt(LocalDateTime createAt) {
+        this.createAt = createAt;
+    }
 
     public Integer getId() {
         return id;
