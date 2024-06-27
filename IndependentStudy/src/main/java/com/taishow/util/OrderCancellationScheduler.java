@@ -15,6 +15,7 @@ public class OrderCancellationScheduler {
 
     @Scheduled(fixedDelay = 60000)
     public void cancelOrders() {
+        System.out.println("Executing cancelOrders()");
         orderService.checkAndCancelOrders();
     }
 }

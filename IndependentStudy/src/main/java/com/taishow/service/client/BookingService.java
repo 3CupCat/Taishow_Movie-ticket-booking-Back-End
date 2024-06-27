@@ -5,6 +5,7 @@ import com.taishow.dto.BookingDto;
 import com.taishow.dto.ShowsDto;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -23,13 +24,14 @@ public class BookingService {
 
         List<Object[]> results = bookingRepository.getWeekShowById(movieId, endDate);
         Map<Integer, BookingDto> bookingMap = new HashMap<>();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
         for (Object[] result : results) {
             Integer theaterId = (Integer) result[0];
             String theaterName = (String) result[1];
             String address = (String) result[2];
             Integer showTimeId = (Integer) result[3];
-            String showTime = result[4].toString();
+            String showTime = dateFormat.format(result[4]);
             Integer screenId = (Integer) result[5];
             String screenName = (String) result[6];
             String screenClass = (String) result[7];
