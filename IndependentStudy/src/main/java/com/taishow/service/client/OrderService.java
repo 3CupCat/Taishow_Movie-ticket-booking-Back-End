@@ -101,8 +101,12 @@ public class OrderService {
         int totalPrice = 0;
         int reduceBonusPoint = 0;
 
-        // 會員持有紅利點數 (從user表獲取)
-        int userBonusPoint = 0;
+        //todo start
+        //計算會員持有的紅利點數
+        Integer userBonusPoint = userRepository.findTotalBonusByUserId(userId);
+        System.out.println("userBonusPoint: " + userBonusPoint);
+
+        //todo end
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("錯誤的會員資訊，請刷新頁面再試"));
 
@@ -340,7 +344,7 @@ public class OrderService {
                 LocalDateTime orderDate = convertToLocalDateTime(order.getOrderDate());
                 System.out.println("orderDate: "+orderDate);
 
-                if (orderDate.plusMinutes(30).isBefore(now) || now.isAfter(showTime)) {
+                if (orderDate.plusMinutes(3).isBefore(now) || now.isAfter(showTime)) {
                     System.out.println("檢查結果1: "+orderDate.plusMinutes(30).isBefore(now));
                     System.out.println("檢查結果2: "+now.isAfter(showTime));
                     Payment payment = paymentRepository.findByOrdersId(order.getId())
