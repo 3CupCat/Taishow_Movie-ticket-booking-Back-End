@@ -48,8 +48,14 @@ public class JwtFilter implements Filter {
 
         // 放行不需要驗證的路徑
         String path = httpRequest.getRequestURI();
-        if ("/user/login".equals(path) || "/user/register".equals(path) ||"/user/sendVerification".equals(path) ||"/user/verifyCode".equals(path) ||"/user/checkAccountEmail".equals(path) ||"/createTheater".equals(path) ||"/theaters".equals(path) || path.matches("/booking/\\d+")|| path.equals("/ecpayCallback")
-                || path.matches("/booking/\\d+/order")|| path.matches("/api/\\d+")|| path.matches("/api/movie")|| path.matches("/api/homepageTrailers") || path.matches("/api/movies/search") || path.matches("/seat-layout.*") || path.matches("/seat-status.*") || path.matches("/bonus-records") || path.matches("/payment-records") || path.matches("/payment-records.*") || path.matches("/refund-records") || path.matches("/refund-records.*") ) {
+        if (path.matches("/user/google-login") || "/user/login".equals(path) || "/user/register".equals(path) ||
+                "/user/sendVerification".equals(path) || "/user/verifyCode".equals(path) || "/user/checkAccountEmail".equals(path) ||
+                "/createTheater".equals(path) || "/theaters".equals(path) || path.matches("/booking/\\d+")||
+                path.equals("/ecpayCallback") || path.matches("/booking/\\d+/order")|| path.matches("/api/\\d+")||
+                path.matches("/api/movie")|| path.matches("/api/homepageTrailers") || path.matches("/api/movies/search") ||
+                path.matches("/seat-layout.*") || path.matches("/seat-status.*") || path.matches("/bonus-records") ||
+                path.matches("/payment-records") || path.matches("/payment-records.*") || path.matches("/refund-records") ||
+                path.matches("/refund-records.*")) {
             chain.doFilter(request, response);
             return;
         }

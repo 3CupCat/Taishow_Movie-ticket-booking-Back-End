@@ -52,4 +52,19 @@ public class UserService {
         return new Result(200,list);
     }
 
+    public User findOrCreateUser(String email, String userName, String photo) {
+        Optional<User> existingUser = userDao.findByEmail(email).stream().findFirst();
+
+        if (existingUser.isPresent()) {
+            return existingUser.get();
+        } else {
+            User newUser = new User();
+            newUser.setEmail(email);
+            newUser.setUserName(userName);
+            newUser.setPhoto(photo);
+            userDao.save(newUser);
+            return newUser;
+        }
+    }
+
 }

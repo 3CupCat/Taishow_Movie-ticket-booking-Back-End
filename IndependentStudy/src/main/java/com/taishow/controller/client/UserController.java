@@ -159,6 +159,39 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("登入失敗，帳號或密碼錯誤");
         }
     }
+    @PostMapping("/google-login")
+    public ResponseEntity<String> googleLogin(@RequestBody GoogleLoginRequest request, HttpServletRequest httpRequest) {
+        User user = userService.findOrCreateUser(request.getEmail(), request.getUserName(), request.getPhoto());
+
+        // 確認用戶生日是否存在，若無則設置為 "N/A"
+        String birthday = (user.getBirthday() != null) ? user.getBirthday().toString() : "N/A";
+
+        // 生成 JWT 令牌
+        String token = jwtUtil.generateToken(
+                user.getId(),
+                user.getUserName(),
+                user.getEmail(),
+                user.getAddress(),
+                user.getGender(),
+                user.getPhone(),
+                user.getAccount(),
+                birthday
+        );
+
+        // 獲取登入時間、IP 地址、國家和設備信息
+        String loginTime = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date());
+        String ipAddress = httpRequest.getRemoteAddr();
+        String country = "Taiwan"; // 你可能需要使用服務根據 IP 地址確定國家
+        String deviceInfo = httpRequest.getHeader("User-Agent");
+
+        // 發送登入通知郵件
+        emailService.sendLoginNotification(user.getEmail(), user.getUserName(), loginTime, ipAddress, country, deviceInfo);
+
+        // 返回生成的 JWT 令牌
+        return ResponseEntity.ok(token);
+    }
+
+
 
     @GetMapping("/user-info")
     public ResponseEntity<User> getUserInfo(HttpServletRequest request) {
@@ -241,4 +274,5 @@ public class UserController {
 
         return ResponseEntity.ok("Password changed successfully");
     }
+
 }
