@@ -12,7 +12,7 @@ import java.util.List;
 @Repository
 public interface SeatLayoutRepository extends CrudRepository<Theaters, Integer> {
 
-    @Query(value = "SELECT t.theaterName, s.screenName, se.rowNum, se.seatNum, se.isAisle, se.id as seatId, ss.showTimeId " +
+    @Query(value = "SELECT DISTINCT t.theaterName, s.screenName, se.rowNum, se.seatNum, se.isAisle, se.id as seatId " +
             "FROM Theaters t " +
             "JOIN Screen s ON t.id = s.theaterId " +
             "JOIN Seat se ON s.id = se.screenId " +

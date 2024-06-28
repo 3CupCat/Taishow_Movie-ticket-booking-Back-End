@@ -68,39 +68,48 @@ public class SeatStatusService {
             throw new IllegalArgumentException("Unsupported date type: " + dateObject.getClass().getName());
         }
     }
-    @Transactional // 确保整个方法在一个事务中执行，保证数据一致性
+    @Transactional // 確保整個方法在一個事務中執行，保證數據一致性
     public List<Integer> reserveSeats(List<SeatStatus> seatStatuses) {
-        List<Integer> reservedSeatIds = new ArrayList<>(); // 用于存储已预订座位的ID
+        List<Integer> reservedSeatIds = new ArrayList<>(); // 用於存儲已預訂座位的ID
 
-        for (SeatStatus seatStatus : seatStatuses) { // 遍历所有需要预订的座位状态
-            if (seatStatus.getSeatId() != null) { // 检查 seatId 是否为空
-                synchronized (lock) { // 同步块，确保同一时刻只有一个线程可以进入此块，避免并发问题
-                    SeatStatus existingSeatStatus = seatStatusRepository.findBySeatId(seatStatus.getSeatId());
-                    // 查找数据库中是否已有该座位的状态信息
+        for (SeatStatus seatStatus : seatStatuses) { // 遍歷所有需要預訂的座位狀態
+            if (seatStatus.getSeatId() != null && seatStatus.getShowTimeId() != null) { // 檢查 seatId 和 showtimeId 是否為空
+                synchronized (lock) { // 同步塊，確保同一時刻只有一個線程可以進入此塊，避免並發問題
+                    SeatStatus existingSeatStatus = seatStatusRepository.findBySeatIdAndShowTimeId(seatStatus.getSeatId(), seatStatus.getShowTimeId());
+                    if (existingSeatStatus != null) {
+                        System.out.println("ID: " + existingSeatStatus.getId());
+                        System.out.println("Seat ID: " + existingSeatStatus.getSeatId());
+                        System.out.println("Show Time ID: " + existingSeatStatus.getShowTimeId());
+                        System.out.println("Status: " + existingSeatStatus.getStatus());
+                        System.out.println("Created At: " + existingSeatStatus.getCreateAt());
+                    } else {
+                        System.out.println("No SeatStatus found for the given seatId and showTimeId.");
+                    }
+                    // 查找數據庫中是否已有該座位和場次的狀態信息
 
-                    if (existingSeatStatus != null) { // 如果座位状态信息已存在
+                    if (existingSeatStatus != null) { // 如果座位狀態信息已存在
                         if ("available".equals(existingSeatStatus.getStatus())) {
-                            // 如果座位状态是 "available"，则可以预订
-                            existingSeatStatus.setStatus("taken"); // 将状态设置为 "taken"
-                            existingSeatStatus.setCreateAt(LocalDateTime.now()); // 更新创建时间为当前时间
+                            // 如果座位狀態是 "available"，則可以預訂
+                            existingSeatStatus.setStatus("taken"); // 將狀態設置為 "taken"
+                            existingSeatStatus.setCreateAt(LocalDateTime.now()); // 更新創建時間為當前時間
                             seatStatusRepository.saveAndFlush(existingSeatStatus);
-                            // 使用 saveAndFlush 确保更改立即写入数据库，避免延迟
-                            reservedSeatIds.add(existingSeatStatus.getId()); // 将预订的座位ID添加到列表
+                            // 使用 saveAndFlush 確保更改立即寫入數據庫，避免延遲
+                            reservedSeatIds.add(existingSeatStatus.getId()); // 將預訂的座位ID添加到列表
                         } else {
                             throw new IllegalStateException("座位已被選取");
-                            // 如果座位状态不是 "available"，则抛出异常
+                            // 如果座位狀態不是 "available"，則拋出異常
                         }
                     } else {
-                        // 如果座位状态信息不存在，说明是新座位，直接保存新的状态
-                        seatStatus.setCreateAt(LocalDateTime.now()); // 设置创建时间为当前时间
+                        // 如果座位狀態信息不存在，說明是新座位，直接保存新的狀態
+                        seatStatus.setCreateAt(LocalDateTime.now()); // 設置創建時間為當前時間
                         SeatStatus savedSeatStatus = seatStatusRepository.saveAndFlush(seatStatus);
-                        // 保存并立即刷新到数据库，确保数据一致性
-                        reservedSeatIds.add(savedSeatStatus.getId()); // 将预订的座位ID添加到列表
+                        // 保存並立即刷新到數據庫，確保數據一致性
+                        reservedSeatIds.add(savedSeatStatus.getId()); // 將預訂的座位ID添加到列表
                     }
-                } // 同步块结束
+                } // 同步塊結束
             } else {
-                throw new IllegalArgumentException("seatId cannot be null");
-                // 如果 seatId 为空，抛出非法参数异常
+                throw new IllegalArgumentException("seatId and showtimeId cannot be null");
+                // 如果 seatId 或 showtimeId 為空，拋出非法參數異常
             }
         }
         return reservedSeatIds; // 返回预订的座位ID列表

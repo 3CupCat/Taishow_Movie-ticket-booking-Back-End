@@ -9,19 +9,19 @@ public class SeatLayoutDto {
     private Integer seat_number;
     private Boolean is_aisle;
     private Integer seat_id;
-    private Integer showtime_id;
+
 
     // Constructors
     public SeatLayoutDto() {}
 
-    public SeatLayoutDto(String theater_name, String screen_name, Integer row_num, Integer seat_number, Boolean is_aisle, Integer seat_id, Integer showtime_id) {
+    public SeatLayoutDto(String theater_name, String screen_name, Integer row_num, Integer seat_number, Boolean is_aisle, Integer seat_id) {
         this.theater_name = theater_name;
         this.screen_name = screen_name;
         this.row_num = row_num;
         this.seat_number = seat_number;
         this.is_aisle = is_aisle;
         this.seat_id = seat_id;
-        this.showtime_id= showtime_id;
+
     }
 
     // Getters and Setters
@@ -35,13 +35,7 @@ public class SeatLayoutDto {
         this.seat_id = seat_id;
     }
 
-    public Integer getShowtime_id() {
-        return showtime_id;
-    }
 
-    public void setShowtime_id(Integer showtime_id) {
-        this.showtime_id = showtime_id;
-    }
 
     public String getTheater_name() {
         return theater_name;

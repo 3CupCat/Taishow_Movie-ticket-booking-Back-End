@@ -32,8 +32,8 @@ public class SeatLayoutService {
                             (Integer) result[2],                                        //  row_num
                             (Integer) result[3],                                        //  seat_number
                             (Boolean) result[4],                                        //  is_aisle
-                            (Integer) result[5],                                        // seat_id
-                            (Integer) result[6]                                         // showtime_id
+                            (Integer) result[5]                                        // seat_id
+                                                                   // showtime_id
                     ))
 
                     .collect(Collectors.toList());

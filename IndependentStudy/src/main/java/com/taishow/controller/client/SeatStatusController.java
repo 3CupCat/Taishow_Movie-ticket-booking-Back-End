@@ -3,6 +3,8 @@ package com.taishow.controller.client;
 import com.taishow.dto.SeatStatusDto;
 import com.taishow.entity.SeatStatus;
 import com.taishow.service.client.SeatStatusService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +17,7 @@ import java.util.List;
 @RequestMapping("/seat-status")
 public class SeatStatusController {
 
+    private static final Logger logger = LoggerFactory.getLogger(SeatStatusController.class);
 
     @Autowired
     private SeatStatusService seatStatusService;
@@ -34,9 +37,12 @@ public class SeatStatusController {
         for (SeatStatus seatStatus : seatStatuses) {
             seatStatus.setCreateAt(currentDateTime); // 设置 createAt 时间为当前时间
             if (seatStatus.getSeatId() == null) {
-                return ResponseEntity.badRequest().body("seatId cannot be null");
+                logger.error("Invalid SeatStatus: {}", seatStatus);
+                return ResponseEntity.badRequest().body("seatID cannot be null");
             }
+
         }
+
         try {
             List<Integer> reservedSeatIds = seatStatusService.reserveSeats(seatStatuses);
             return ResponseEntity.ok(reservedSeatIds); // 成功时返回整数列表

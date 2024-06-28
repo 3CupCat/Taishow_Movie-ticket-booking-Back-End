@@ -46,4 +46,7 @@ public interface SeatStatusRepository extends JpaRepository<SeatStatus, Integer>
 
     // 根據座位ID查詢座位狀態
     SeatStatus findBySeatId(Integer seatId);
+
+    // 根據座位ID和場次ID查詢座位狀態
+    SeatStatus findBySeatIdAndShowTimeId(Integer seatId, Integer showTimeId);
 }
