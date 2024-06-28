@@ -7,7 +7,7 @@ import jakarta.persistence.*;
 public class TicketType {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @Column(name = "unit_price")
