@@ -57,7 +57,7 @@ public interface OrderRepository extends JpaRepository<Orders, Integer> {
             "ORDER BY o.orderNum DESC")
     public List<Object[]> getAllBonusRecord();
 
-    @Query("SELECT o.orderNum, u.account, o.totalAmount, COALESCE(SUM(b.bonus), 0) AS totalBonus, p.payway, p.payStatus, st.showTime, " +
+    @Query("SELECT o.orderNum, u.account, o.totalAmount, COALESCE(SUM(DISTINCT b.bonus), 0) AS totalBonus, p.payway, p.payStatus, st.showTime, " +
             "(SELECT COUNT(DISTINCT p2.payStatus) > 1 FROM Payment p2 WHERE p2.ordersId = o.id) AS multiplePayStatus " +
             "FROM Orders o " +
             "JOIN User u ON o.userId = u.id " +

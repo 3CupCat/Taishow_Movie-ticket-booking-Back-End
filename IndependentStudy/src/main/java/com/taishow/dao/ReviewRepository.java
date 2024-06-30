@@ -31,17 +31,13 @@ public interface ReviewRepository extends JpaRepository<Review, Integer> {
     @Query("SELECT r.id, u.nickName, u.photo, r.reviewDate, r.score, r.comment, " +
             "(SELECT COUNT(i) FROM Interactive i WHERE i.reviewId = r.id AND i.likeit = true), " +
             "(SELECT COUNT(i) FROM Interactive i WHERE i.reviewId = r.id AND i.dislike = true), " +
-            "(SELECT CASE WHEN COUNT(i) > 0 THEN true ELSE false END " +
-            " FROM Interactive i WHERE i.reviewId = r.id AND i.userId = :userId AND i.likeit = true), " +
-            "(SELECT CASE WHEN COUNT(i) > 0 THEN true ELSE false END " +
-            " FROM Interactive i WHERE i.reviewId = r.id AND i.userId = :userId AND i.dislike = true), " +
-            "(SELECT CASE WHEN COUNT(i) > 0 THEN true ELSE false END " +
-            " FROM Interactive i WHERE i.reviewId = r.id AND i.userId = :userId AND i.report = true) " +
+            "(CASE WHEN (SELECT COUNT(i) FROM Interactive i WHERE i.reviewId = r.id AND i.userId = :userId AND i.likeit = true) > 0 THEN true ELSE false END), " +
+            "(CASE WHEN (SELECT COUNT(i) FROM Interactive i WHERE i.reviewId = r.id AND i.userId = :userId AND i.dislike = true) > 0 THEN true ELSE false END), " +
+            "(CASE WHEN (SELECT COUNT(i) FROM Interactive i WHERE i.reviewId = r.id AND i.userId = :userId AND i.report = true) > 0 THEN true ELSE false END) " +
             "FROM Review r " +
             "LEFT JOIN User u ON r.userId = u.id " +
             "WHERE r.movieId = :movieId " +
-            "ORDER BY " +
-            "(SELECT COUNT(i) FROM Interactive i WHERE i.reviewId = r.id AND i.likeit = true) DESC")
+            "ORDER BY (SELECT COUNT(i) FROM Interactive i WHERE i.reviewId = r.id AND i.likeit = true) DESC")
     public List<Object[]> findCommentDetailByMovieIdAndUserId(Integer movieId, Integer userId);
 
     public Review findByUserIdAndMovieId(Integer userId, Integer movieId);
@@ -60,4 +56,12 @@ public interface ReviewRepository extends JpaRepository<Review, Integer> {
             "LEFT JOIN User u ON r.userId = u.id " +
             "WHERE r.id = :reviewId")
     public List<Object[]> findCommentDetailByReviewIdAndUserId(Integer reviewId, Integer userId);
+
+    @Query("SELECT r.id, u.account, u.email, u.nickName, r.score, r.comment, r.reviewDate, " +
+            "(CASE WHEN (SELECT COUNT(i) FROM Interactive i WHERE i.reviewId = r.id AND i.report = true) > 0 THEN true ELSE false END) " +
+            "FROM Review r " +
+            "LEFT JOIN User u ON r.userId = u.id " +
+            "WHERE r.movieId = :movieId " +
+            "ORDER BY r.id DESC")
+    public List<Object[]> findCommentDetailByMovieId(Integer movieId);
 }

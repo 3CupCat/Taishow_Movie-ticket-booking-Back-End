@@ -11,11 +11,12 @@ public class PaymentRecordDto {
     private String showTime;
     private boolean isRefunded;
 
-    public PaymentRecordDto(String orderNum, String account, Integer bonus, Integer totalAmount, String payway, String payStatus, String showTime, boolean isRefunded) {
+    public PaymentRecordDto(String orderNum, String account, Integer totalAmount, Integer bonus, String payway,
+                            String payStatus, String showTime, boolean isRefunded) {
         this.orderNum = orderNum;
         this.account = account;
-        this.bonus = bonus;
         this.totalAmount = totalAmount;
+        this.bonus = bonus;
         this.payway = payway;
         this.payStatus = payStatus;
         this.showTime = showTime;
