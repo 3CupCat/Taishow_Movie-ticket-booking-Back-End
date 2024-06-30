@@ -12,7 +12,7 @@ import java.util.Optional;
 public interface BonusRepository extends JpaRepository<Bonus, Integer> {
     public List<Bonus> findByPaymentId(Integer paymentId);
 
-    @Query("SELECT b.bonus " +
+    @Query("SELECT b " +
             "FROM Orders o " +
             "JOIN Payment p ON o.id = p.ordersId " +
             "JOIN Bonus b ON p.id = b.paymentId " +

@@ -101,16 +101,12 @@ public class OrderService {
         int totalPrice = 0;
         int reduceBonusPoint = 0;
 
-        //todo start
-        //計算會員持有的紅利點數
-        Integer userBonusPoint = userRepository.findTotalBonusByUserId(userId);
-        System.out.println("userBonusPoint: " + userBonusPoint);
-
-        //todo end
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("錯誤的會員資訊，請刷新頁面再試"));
 
-        userBonusPoint = user.getBonusPoint();
+        //計算會員持有的紅利點數
+        Integer userBonusPoint = userRepository.findTotalBonusByUserId(userId);
+        System.out.println("userBonusPoint: " + userBonusPoint);
 
         for (int i = 0; i < orderDto.getSeatStatusId().size(); i++) {
             TicketType ticketType = ticketTypeRepository.findById(orderDto.getTicketTypeId().get(i))
@@ -165,6 +161,12 @@ public class OrderService {
             bonus.setModifyTime(now);
             bonusRepository.save(bonus);
         }
+
+        // 更新會員紅利點數
+        Integer updateUserBonusPoint = userRepository.findTotalBonusByUserId(userId);
+        user.setBonusPoint(updateUserBonusPoint);
+        userRepository.save(user);
+        System.out.println("updateUserBonusPoint: " + updateUserBonusPoint);
 
         // 建立電影票
         for (int i = 0; i < orderDto.getSeatStatusId().size(); i++) {
@@ -344,7 +346,7 @@ public class OrderService {
                 LocalDateTime orderDate = convertToLocalDateTime(order.getOrderDate());
                 System.out.println("orderDate: "+orderDate);
 
-                if (orderDate.plusMinutes(3).isBefore(now) || now.isAfter(showTime)) {
+                if (orderDate.plusMinutes(30).isBefore(now) || now.isAfter(showTime)) {
                     System.out.println("檢查結果1: "+orderDate.plusMinutes(30).isBefore(now));
                     System.out.println("檢查結果2: "+now.isAfter(showTime));
                     Payment payment = paymentRepository.findByOrdersId(order.getId())
