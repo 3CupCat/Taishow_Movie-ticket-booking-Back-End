@@ -36,9 +36,6 @@ public class UserController {
     @Autowired
     private JwtUtil jwtUtil;
 
-
-
-
     public UserController(UserService userService){
         this.userService = userService;
     }
@@ -68,7 +65,6 @@ public class UserController {
         return userService.findAll();
     }
 
-
     @PostMapping("/sendVerification")
     public ResponseEntity<String> sendVerification(@RequestBody Map<String, String> request) {
         String email = request.get("email");
@@ -93,6 +89,7 @@ public class UserController {
 
         return ResponseEntity.ok("");
     }
+
     @PostMapping("/register")
     public ResponseEntity<String> register(@Valid @RequestBody UserForm userForm, BindingResult result) {
         if (result.hasErrors()) {
@@ -125,8 +122,6 @@ public class UserController {
         userDao.save(user);
         return ResponseEntity.ok("註冊成功");
     }
-
-
 
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody @NonNull User loginRequest, HttpServletRequest request) {

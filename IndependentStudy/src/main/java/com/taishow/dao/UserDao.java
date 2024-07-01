@@ -15,6 +15,7 @@ public interface UserDao extends JpaRepository<User, Integer> {
     Optional<User> findByPhone(String phone);
     boolean existsByAccount(String account); // 添加这行
     boolean existsByEmail(String email); // 添加这行
+
     @Transactional
     List<User> findByEmail(String email);
     List<User> findByEmailAndPasswd(String email, String passwd);

@@ -35,7 +35,7 @@ public class JwtFilter implements Filter {
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
         // 處理 CORS 頭
-        httpResponse.setHeader("Access-Control-Allow-Origin", "*");
+        httpResponse.setHeader("Access-Control-Allow-Origin", "http://localhost:3030");
         httpResponse.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
         httpResponse.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type, X-Requested-With");
         httpResponse.setHeader("Access-Control-Allow-Credentials", "true");
@@ -56,7 +56,8 @@ public class JwtFilter implements Filter {
                 path.matches("/seat-layout.*") || path.matches("/seat-status.*") || path.matches("/bonus-records") ||
                 path.matches("/payment-records") || path.matches("/payment-records.*") || path.matches("/refund-records") ||
                 path.matches("/refund-records.*") || path.matches("/reviews/\\d") || path.matches("/api/movies/details.*") ||
-                path.matches("/reviews/\\d/interaction") || path.matches("/review-records") || path.matches("/review-records.*")) {
+                path.matches("/reviews/\\d/interaction") || path.matches("/review-records") || path.matches("/review-records.*") ||
+                path.matches("/permission/login") || path.matches("/movie/.*") || path.matches("/still/.*")) {
             chain.doFilter(request, response);
             return;
         }
