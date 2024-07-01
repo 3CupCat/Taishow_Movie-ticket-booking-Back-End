@@ -1,5 +1,6 @@
 package com.taishow.controller.client;
 
+import com.taishow.dto.OrderHistoryDto;
 import com.taishow.dto.Result;
 import com.taishow.entity.Orders;
 import com.taishow.service.client.OrderHistoryService;
@@ -42,7 +43,7 @@ public class OrderHistoryController {
     }
 
     @GetMapping("/orderDetails")
-    public List<Map<String, Object>> getOrderDetails(@RequestHeader("Authorization") String token) {
+    public List<OrderHistoryDto> getOrderDetails(@RequestHeader("Authorization") String token) {
         if (token.startsWith("Bearer ")) {
             token = token.substring(7);
         }

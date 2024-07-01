@@ -1,11 +1,15 @@
 package com.taishow.service.client;
 
 import com.taishow.dao.BonusDao;
+import com.taishow.dto.BonusDetailDto;
 import com.taishow.entity.*;
 import com.taishow.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -20,36 +24,43 @@ public class BonusService {
     @Autowired
     private JwtUtil jwtUtil;
 
-    public List<Map<String, Object>> getBonusByToken(String token) {
+    public List<BonusDetailDto> getBonusByToken(String token) {
         Integer userId = jwtUtil.getUserIdFromToken(token);
-        List<Object[]> results = bonusDao.findByAll(userId);
+        List<Object[]> results = bonusDao.findBonusDetailByUserId(userId);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-        List<Map<String, Object>> orderPaymentTicketShowtimeMovieScreenTheaterBonusList = new ArrayList<>();
+        List<BonusDetailDto> bonusDetailDtoList = new ArrayList<>();
         for (Object[] result : results) {
-            Map<String, Object> orderPaymentTicketShowtimeMovieScreenTheaterBonusMap = new HashMap<>();
+            BonusDetailDto dto = new BonusDetailDto();
+            dto.setBonusId((Integer) result[0]);
 
-            Orders order = (Orders) result[0];
-            Payment payment = (Payment) result[1];
-            Tickets ticket = (Tickets) result[2];
-            SeatStatus seatStatus = (SeatStatus) result[3]; // 修改这里
-            ShowTime showtime = (ShowTime) result[4];
-            Movie movie = (Movie) result[5];
-            Screen screen = (Screen) result[6];
-            Theaters theater = result.length > 7 && result[7] instanceof Theaters ? (Theaters) result[7] : null;
-            Bonus bonus = result.length > 8 && result[8] instanceof Bonus ? (Bonus) result[8] : null;
+            // 處理 orderDate
+            Timestamp orderDateTimestamp = (Timestamp) result[1];
+            if (orderDateTimestamp != null) {
+                LocalDateTime orderDateTime = orderDateTimestamp.toLocalDateTime();
+                String orderDateString = orderDateTime.format(formatter);
+                dto.setOrderDate(orderDateString);
+            }
 
-            orderPaymentTicketShowtimeMovieScreenTheaterBonusMap.put("order", order);
-            orderPaymentTicketShowtimeMovieScreenTheaterBonusMap.put("payment", payment);
-            orderPaymentTicketShowtimeMovieScreenTheaterBonusMap.put("ticket", ticket);
-            orderPaymentTicketShowtimeMovieScreenTheaterBonusMap.put("seatStatus", seatStatus); // 添加 seatStatus
-            orderPaymentTicketShowtimeMovieScreenTheaterBonusMap.put("showtime", showtime);
-            orderPaymentTicketShowtimeMovieScreenTheaterBonusMap.put("movie", movie);
-            orderPaymentTicketShowtimeMovieScreenTheaterBonusMap.put("screen", screen);
-            orderPaymentTicketShowtimeMovieScreenTheaterBonusMap.put("theater", theater);
-            orderPaymentTicketShowtimeMovieScreenTheaterBonusMap.put("bonus", bonus);
+            dto.setBonus((Integer) result[2]);
 
-            orderPaymentTicketShowtimeMovieScreenTheaterBonusList.add(orderPaymentTicketShowtimeMovieScreenTheaterBonusMap);
+            // 處理 showTime
+            Timestamp showTimeTimestamp = (Timestamp) result[3];
+            if (showTimeTimestamp != null) {
+                LocalDateTime showTimeDateTime = showTimeTimestamp.toLocalDateTime();
+                String showTimeString = showTimeDateTime.format(formatter);
+                dto.setShowTime(showTimeString);
+            }
+
+            dto.setTitle((String) result[4]);
+            dto.setTheaterName((String) result[5]);
+            dto.setScreenName((String) result[6]);
+            dto.setPayway((String) result[7]);
+            dto.setPayStatus((String) result[8]);
+
+            bonusDetailDtoList.add(dto);
         }
-        return orderPaymentTicketShowtimeMovieScreenTheaterBonusList;
+
+        return bonusDetailDtoList;
     }
 }

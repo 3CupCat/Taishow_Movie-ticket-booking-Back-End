@@ -76,15 +76,15 @@ public class SeatStatusService {
             if (seatStatus.getSeatId() != null && seatStatus.getShowTimeId() != null) { // 檢查 seatId 和 showtimeId 是否為空
                 synchronized (lock) { // 同步塊，確保同一時刻只有一個線程可以進入此塊，避免並發問題
                     SeatStatus existingSeatStatus = seatStatusRepository.findBySeatIdAndShowTimeId(seatStatus.getSeatId(), seatStatus.getShowTimeId());
-                    if (existingSeatStatus != null) {
-                        System.out.println("ID: " + existingSeatStatus.getId());
-                        System.out.println("Seat ID: " + existingSeatStatus.getSeatId());
-                        System.out.println("Show Time ID: " + existingSeatStatus.getShowTimeId());
-                        System.out.println("Status: " + existingSeatStatus.getStatus());
-                        System.out.println("Created At: " + existingSeatStatus.getCreateAt());
-                    } else {
-                        System.out.println("No SeatStatus found for the given seatId and showTimeId.");
-                    }
+//                    if (existingSeatStatus != null) {
+//                        System.out.println("ID: " + existingSeatStatus.getId());
+//                        System.out.println("Seat ID: " + existingSeatStatus.getSeatId());
+//                        System.out.println("Show Time ID: " + existingSeatStatus.getShowTimeId());
+//                        System.out.println("Status: " + existingSeatStatus.getStatus());
+//                        System.out.println("Created At: " + existingSeatStatus.getCreateAt());
+//                    } else {
+//                        System.out.println("No SeatStatus found for the given seatId and showTimeId.");
+//                    }
                     // 查找數據庫中是否已有該座位和場次的狀態信息
 
                     if (existingSeatStatus != null) { // 如果座位狀態信息已存在
@@ -136,25 +136,25 @@ public class SeatStatusService {
         List<String> payStatusList = seatStatusRepository.getPayStatusById1(seatStatusId);
 
         if (payStatusList.isEmpty()) {
-            System.out.println("No payment data for seat status ID: " + seatStatusId);
+//            System.out.println("No payment data for seat status ID: " + seatStatusId);
             updateSeatStatusToAvailable(seatStatus);
         } else {
             String payStatus = payStatusList.get(0);
             switch (payStatus) {
                 case "已退款":
-                    System.out.println("Payment refunded for seat status ID: " + seatStatusId);
+//                    System.out.println("Payment refunded for seat status ID: " + seatStatusId);
                     updateSeatStatusToAvailable(seatStatus);
                     break;
                 case "付款失敗":
-                    System.out.println("Payment failed for seat status ID: " + seatStatusId);
+//                    System.out.println("Payment failed for seat status ID: " + seatStatusId);
                     updateSeatStatusToAvailable(seatStatus);
                     break;
                 case "已取消":
-                    System.out.println("Payment cancelled for seat status ID: " + seatStatusId);
+//                    System.out.println("Payment cancelled for seat status ID: " + seatStatusId);
                     // 不再需要更新座位狀態為"cancelled"
                     break;
                 default:
-                    System.out.println("Payment status: " + payStatus + " for seat status ID: " + seatStatusId);
+//                    System.out.println("Payment status: " + payStatus + " for seat status ID: " + seatStatusId);
                     // 處理其他支付狀態的情況
                     break;
             }

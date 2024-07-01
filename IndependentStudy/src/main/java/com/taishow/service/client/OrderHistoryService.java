@@ -1,12 +1,16 @@
 package com.taishow.service.client;
 
 import com.taishow.dao.OrderDao;
+import com.taishow.dto.OrderHistoryDto;
 import com.taishow.dto.Result;
 import com.taishow.entity.*;
 import com.taishow.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
@@ -40,41 +44,42 @@ public class OrderHistoryService {
         }
     }
 
-    public List<Map<String, Object>> getOrdersPaymentsTicketsShowtimeMovieScreenAndTheaterByToken(String token) {
+    public List<OrderHistoryDto> getOrdersPaymentsTicketsShowtimeMovieScreenAndTheaterByToken(String token) {
         Integer userId = jwtUtil.getUserIdFromToken(token);
-        List<Object[]> results = orderDao.findOrdersWithPaymentsTicketsShowtimeMovieScreenAndTheaterByUserId(userId);
+        List<Object[]> results = orderDao.findOrderDetailByUserId(userId);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-        List<Map<String, Object>> orderPaymentTicketShowtimeMovieScreenTheaterList = new ArrayList<>();
+        List<OrderHistoryDto> orderHistoryDtoList = new ArrayList<>();
         for (Object[] result : results) {
-            // Logging the result length and contents for debugging
-            System.out.println("Result length: " + result.length);
-            for (Object obj : result) {
-                System.out.println(obj);
+            OrderHistoryDto dto = new OrderHistoryDto();
+            dto.setPaymentId((Integer) result[0]);
+            dto.setOrderNum((String) result[1]);
+
+            Timestamp orderDateTimestamp = (Timestamp) result[2];
+            if (orderDateTimestamp != null) {
+                LocalDateTime orderDateTime = orderDateTimestamp.toLocalDateTime();
+                String orderDateString = orderDateTime.format(formatter);
+                dto.setOrderDate(orderDateString);
             }
 
-            Map<String, Object> orderPaymentTicketShowtimeMovieScreenTheaterMap = new HashMap<>();
+            dto.setTotalAmount((Integer) result[3]);
+            dto.setTitle((String) result[4]);
 
-            Orders order = (Orders) result[0];
-            Payment payment = (Payment) result[1];
-            Tickets ticket = (Tickets) result[2];
-            SeatStatus seatStatus = (SeatStatus) result[3];  // 正確解析 SeatStatus
-            ShowTime showtime = (ShowTime) result[4];
-            Movie movie = (Movie) result[5];
-            Screen screen = (Screen) result[6];
-            Theaters theater = result.length > 7 && result[7] instanceof Theaters ? (Theaters) result[7] : null;
+            Timestamp showTimeTimestamp = (Timestamp) result[5];
+            if (showTimeTimestamp != null) {
+                LocalDateTime showTimeDateTime = showTimeTimestamp.toLocalDateTime();
+                String showTimeString = showTimeDateTime.format(formatter);
+                dto.setShowTime(showTimeString);
+            }
 
-            orderPaymentTicketShowtimeMovieScreenTheaterMap.put("order", order);
-            orderPaymentTicketShowtimeMovieScreenTheaterMap.put("payment", payment);
-            orderPaymentTicketShowtimeMovieScreenTheaterMap.put("ticket", ticket);
-            orderPaymentTicketShowtimeMovieScreenTheaterMap.put("seatStatus", seatStatus);  // 加入 seatStatus 到 Map 中
-            orderPaymentTicketShowtimeMovieScreenTheaterMap.put("showtime", showtime);
-            orderPaymentTicketShowtimeMovieScreenTheaterMap.put("movie", movie);
-            orderPaymentTicketShowtimeMovieScreenTheaterMap.put("screen", screen);
-            orderPaymentTicketShowtimeMovieScreenTheaterMap.put("theater", theater);
+            dto.setTheaterName((String) result[6]);
+            dto.setScreenName((String) result[7]);
+            dto.setPayStatus((String) result[8]);
+            dto.setQrcode((String) result[9]);
 
-            orderPaymentTicketShowtimeMovieScreenTheaterList.add(orderPaymentTicketShowtimeMovieScreenTheaterMap);
+            orderHistoryDtoList.add(dto);
         }
-        return orderPaymentTicketShowtimeMovieScreenTheaterList;
+        return orderHistoryDtoList;
     }
 
 }

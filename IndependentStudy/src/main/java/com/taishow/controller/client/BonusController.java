@@ -1,5 +1,6 @@
 package com.taishow.controller.client;
 
+import com.taishow.dto.BonusDetailDto;
 import com.taishow.service.client.BonusService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -15,7 +16,7 @@ public class BonusController {
     private BonusService bonusService;
 
     @GetMapping("/BonusPoints")
-    public List<Map<String, Object>> getBonusPointDetails(@RequestHeader("Authorization") String token) {
+    public List<BonusDetailDto> getBonusPointDetails(@RequestHeader("Authorization") String token) {
         if (token.startsWith("Bearer ")) {
             token = token.substring(7);
         }

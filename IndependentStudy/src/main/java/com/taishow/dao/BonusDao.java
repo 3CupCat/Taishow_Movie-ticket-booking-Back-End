@@ -22,4 +22,19 @@ public interface BonusDao extends JpaRepository<Bonus, Integer> {
             "LEFT JOIN Bonus b ON p.id = b.paymentId " +
             "WHERE o.userId = :userId")
     List<Object[]> findByAll(@Param("userId") Integer userId);
+
+    @Query("SELECT DISTINCT b.id, o.orderDate, b.bonus, st.showTime, m.title, " +
+            "th.theaterName, sc.screenName, p.payway, p.payStatus " +
+            "FROM Orders o " +
+            "JOIN Payment p ON o.id = p.ordersId " +
+            "JOIN Tickets t ON o.id = t.ordersId " +
+            "JOIN SeatStatus ss ON t.seatStatusId = ss.id " +
+            "JOIN ShowTime st ON ss.showTimeId = st.id " +
+            "JOIN Movie m ON st.movieId = m.id " +
+            "JOIN Screen sc ON st.screenId = sc.id " +
+            "JOIN Theaters th ON sc.theaterId = th.id " +
+            "JOIN Bonus b ON p.id = b.paymentId " +
+            "WHERE o.userId = :userId " +
+            "ORDER BY b.id DESC")
+    List<Object[]> findBonusDetailByUserId(Integer userId);
 }
