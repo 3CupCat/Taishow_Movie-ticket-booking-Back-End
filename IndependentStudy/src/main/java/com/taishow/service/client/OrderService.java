@@ -106,7 +106,6 @@ public class OrderService {
 
         //計算會員持有的紅利點數
         Integer userBonusPoint = userRepository.findTotalBonusByUserId(userId);
-        System.out.println("userBonusPoint: " + userBonusPoint);
 
         for (int i = 0; i < orderDto.getSeatStatusId().size(); i++) {
             TicketType ticketType = ticketTypeRepository.findById(orderDto.getTicketTypeId().get(i))
@@ -166,7 +165,6 @@ public class OrderService {
         Integer updateUserBonusPoint = userRepository.findTotalBonusByUserId(userId);
         user.setBonusPoint(updateUserBonusPoint);
         userRepository.save(user);
-        System.out.println("updateUserBonusPoint: " + updateUserBonusPoint);
 
         // 建立電影票
         for (int i = 0; i < orderDto.getSeatStatusId().size(); i++) {
@@ -326,34 +324,34 @@ public class OrderService {
     }
 
     public void checkAndCancelOrders() {
-        System.out.println("執行checkAndCancelOrders()");
+//        System.out.println("執行checkAndCancelOrders()");
         List<Object[]> results = orderRepository.findPendingOrders();
-        System.out.println("results: " + results);
+//        System.out.println("results: " + results);
         LocalDateTime now = LocalDateTime.now();
-        System.out.println("now: " +now);
+//        System.out.println("now: " +now);
 
         for (Object[] result : results) {
             try {
-                System.out.println("進入result迴圈");
+//                System.out.println("進入result迴圈");
                 String orderNum = (String) result[0];
-                System.out.println("orderNum: " + orderNum);
+//                System.out.println("orderNum: " + orderNum);
                 LocalDateTime showTime = convertToLocalDateTime(result[1]);
-                System.out.println("showTime: " + showTime);
+//                System.out.println("showTime: " + showTime);
 
                 Orders order = orderRepository.findByOrderNum(orderNum)
                         .orElseThrow(() -> new RuntimeException("訂單不存在"));
 
                 LocalDateTime orderDate = convertToLocalDateTime(order.getOrderDate());
-                System.out.println("orderDate: "+orderDate);
+//                System.out.println("orderDate: "+orderDate);
 
                 if (orderDate.plusMinutes(30).isBefore(now) || now.isAfter(showTime)) {
-                    System.out.println("檢查結果1: "+orderDate.plusMinutes(30).isBefore(now));
-                    System.out.println("檢查結果2: "+now.isAfter(showTime));
+//                    System.out.println("檢查結果1: "+orderDate.plusMinutes(30).isBefore(now));
+//                    System.out.println("檢查結果2: "+now.isAfter(showTime));
                     Payment payment = paymentRepository.findByOrdersId(order.getId())
                             .orElseThrow(() -> new RuntimeException("付款紀錄不存在"));
 
                     Date modifyTime = new Date();
-                    System.out.println("modifyTime: "+modifyTime);
+//                    System.out.println("modifyTime: "+modifyTime);
 
                     // 更新付款紀錄
                     payment.setPayStatus("已取消");
@@ -392,7 +390,7 @@ public class OrderService {
                         seatStatus.setStatus("available");
                         seatStatusRepository.save(seatStatus);
                     }
-                    System.out.println("結束checkAndCancelOrders()");
+//                    System.out.println("結束checkAndCancelOrders()");
                 }
             } catch (Exception e) {
                 System.out.println("尋訪訂單失敗: " + e.getMessage());
