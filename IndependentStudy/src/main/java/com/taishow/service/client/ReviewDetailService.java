@@ -34,7 +34,9 @@ public class ReviewDetailService {
     }
 
     public ReviewDetailDto getReviews(Integer userId, Integer movieId){
+        System.out.println("userId: "+userId);
         ReviewDetailDto reviewDetailDto = new ReviewDetailDto();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
         // 取得電影資訊
         Movie movie = movieRepository.findById(movieId)
@@ -57,12 +59,33 @@ public class ReviewDetailService {
             reviewDetailDto.setFiveStarRate((Double) result[11]);
         }
 
-        // 取得評論列表
-        List<Object[]> results2 = reviewRepository.findCommentDetailByMovieIdAndUserId(movieId, userId);
-        List<CommentsDto> commentsList = new ArrayList<>();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        // 取得會員本人的評論列表
+        List<Object[]> ownResults = reviewRepository.findOwnCommentDetailByMovieIdAndUserId(movieId, userId);
+        CommentsDto ownComment = null;
 
-        for (Object[] result : results2) {
+        if (!ownResults.isEmpty()) {
+            Object[] result = ownResults.get(0);
+            ownComment = new CommentsDto(
+                    (Integer) result[0],
+                    (String) result[1],
+                    (String) result[2],
+                    ((LocalDateTime) result[3]).format(formatter),
+                    (Integer) result[4],
+                    (String) result[5],
+                    ((Number) result[6]).intValue(),
+                    ((Number) result[7]).intValue(),
+                    (Boolean) result[8],
+                    (Boolean) result[9],
+                    (Boolean) result[10]
+            );
+        }
+        reviewDetailDto.setOwnComment(ownComment);
+
+        // 取得不包含會員本人的評論列表
+        List<Object[]> otherResults = reviewRepository.findCommentDetailByMovieIdAndUserIdExcludingSelf(movieId, userId);
+        List<CommentsDto> commentsList = new ArrayList<>();
+
+        for (Object[] result : otherResults) {
             Integer reviewId = (Integer) result[0];
             String nickName = (String) result[1];
             String photo = (String) result[2];

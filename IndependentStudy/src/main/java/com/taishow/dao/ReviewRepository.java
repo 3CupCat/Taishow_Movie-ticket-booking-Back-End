@@ -10,6 +10,9 @@ import java.util.List;
 
 @Repository
 public interface ReviewRepository extends JpaRepository<Review, Integer> {
+    public Review findByUserIdAndMovieId(Integer userId, Integer movieId);
+    public void deleteByUserIdAndMovieId(Integer userId, Integer movieId);
+    public List<Review> findByMovieId(Integer movieId);
 
     @Query("SELECT " +
             "COUNT(r) AS totalReviews, " +
@@ -36,12 +39,20 @@ public interface ReviewRepository extends JpaRepository<Review, Integer> {
             "(CASE WHEN (SELECT COUNT(i) FROM Interactive i WHERE i.reviewId = r.id AND i.userId = :userId AND i.report = true) > 0 THEN true ELSE false END) " +
             "FROM Review r " +
             "LEFT JOIN User u ON r.userId = u.id " +
-            "WHERE r.movieId = :movieId " +
+            "WHERE r.movieId = :movieId AND r.userId <> :userId " +
             "ORDER BY (SELECT COUNT(i) FROM Interactive i WHERE i.reviewId = r.id AND i.likeit = true) DESC")
-    public List<Object[]> findCommentDetailByMovieIdAndUserId(Integer movieId, Integer userId);
+    public List<Object[]> findCommentDetailByMovieIdAndUserIdExcludingSelf(Integer movieId, Integer userId);
 
-    public Review findByUserIdAndMovieId(Integer userId, Integer movieId);
-    public void deleteByUserIdAndMovieId(Integer userId, Integer movieId);
+    @Query("SELECT r.id, u.nickName, u.photo, r.reviewDate, r.score, r.comment, " +
+            "(SELECT COUNT(i) FROM Interactive i WHERE i.reviewId = r.id AND i.likeit = true), " +
+            "(SELECT COUNT(i) FROM Interactive i WHERE i.reviewId = r.id AND i.dislike = true), " +
+            "(CASE WHEN (SELECT COUNT(i) FROM Interactive i WHERE i.reviewId = r.id AND i.userId = :userId AND i.likeit = true) > 0 THEN true ELSE false END), " +
+            "(CASE WHEN (SELECT COUNT(i) FROM Interactive i WHERE i.reviewId = r.id AND i.userId = :userId AND i.dislike = true) > 0 THEN true ELSE false END), " +
+            "(CASE WHEN (SELECT COUNT(i) FROM Interactive i WHERE i.reviewId = r.id AND i.userId = :userId AND i.report = true) > 0 THEN true ELSE false END) " +
+            "FROM Review r " +
+            "LEFT JOIN User u ON r.userId = u.id " +
+            "WHERE r.movieId = :movieId AND r.userId = :userId")
+    public List<Object[]> findOwnCommentDetailByMovieIdAndUserId(Integer movieId, Integer userId);
 
     @Query("SELECT r.id, u.nickName, u.photo, r.reviewDate, r.score, r.comment, " +
             "(SELECT COUNT(i) FROM Interactive i WHERE i.reviewId = r.id AND i.likeit = true), " +
@@ -64,5 +75,4 @@ public interface ReviewRepository extends JpaRepository<Review, Integer> {
             "WHERE r.movieId = :movieId " +
             "ORDER BY r.id DESC")
     public List<Object[]> findCommentDetailByMovieId(Integer movieId);
-    public List<Review> findByMovieId(Integer movieId);
 }

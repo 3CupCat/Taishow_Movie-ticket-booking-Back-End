@@ -14,6 +14,7 @@ public class ReviewDetailDto {
     private Double twoStarRate;
     private Double oneStarRate;
     private Integer totalCommentsNum;
+    private CommentsDto ownComment;
     private List<CommentsDto> comments;
 
     public String getTitle() {
@@ -94,6 +95,14 @@ public class ReviewDetailDto {
 
     public void setTotalCommentsNum(Integer totalCommentsNum) {
         this.totalCommentsNum = totalCommentsNum;
+    }
+
+    public CommentsDto getOwnComment() {
+        return ownComment;
+    }
+
+    public void setOwnComment(CommentsDto ownComment) {
+        this.ownComment = ownComment;
     }
 
     public List<CommentsDto> getComments() {
