@@ -23,7 +23,7 @@ public interface OrderDao extends JpaRepository<Orders, Integer> {
     List<Object[]> findOrdersWithPaymentsTicketsShowtimeMovieScreenAndTheaterByUserId(@Param("userId") int userId);
 
     @Query("SELECT DISTINCT p.id, o.orderNum, o.orderDate, o.totalAmount, m.title, st.showTime, " +
-            "th.theaterName, sc.screenName, p.payStatus, o.qrcode " +
+            "th.theaterName, sc.screenName, p.payStatus, o.qrcode, p.paymentForm " +
             "FROM Orders o " +
             "JOIN Payment p ON o.id = p.ordersId " +
             "JOIN Tickets t ON o.id = t.ordersId " +

@@ -79,20 +79,28 @@ public class OrderController {
         }
 
         if (orderService.isOrderCancel(hashtable)){
-            return ResponseEntity.status(HttpStatus.OK).body("The order has been cancelled. If you have any questions, please contact customer service");
+            return generateAlertResponse("訂單已被取消，若有疑問請聯絡客服");
         }
 
         try {
             if ("1".equals(callbackData.get("RtnCode"))){
                 orderService.paymentSuccess(hashtable);
-                return ResponseEntity.status(HttpStatus.OK).body("1|OK");
+                return generateAlertResponse("付款成功");
             } else {
                 orderService.paymentFailure(hashtable);
-                return ResponseEntity.status(HttpStatus.OK).body("PaymentFailure");
+                return generateAlertResponse("付款失敗");
             }
         } catch (Exception e){
             System.out.println(e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("建立訂單失敗: " + e.getMessage());
         }
+    }
+
+    private ResponseEntity<String> generateAlertResponse(String message) {
+        String htmlResponse = "<!DOCTYPE html><html><body><script type=\"text/javascript\">" +
+                "alert('" + message + "');" +
+                "window.close();" +
+                "</script></body></html>";
+        return ResponseEntity.status(HttpStatus.OK).body(htmlResponse);
     }
 }

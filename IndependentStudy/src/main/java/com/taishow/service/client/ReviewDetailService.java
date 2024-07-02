@@ -50,13 +50,13 @@ public class ReviewDetailService {
         List<Object[]> results = reviewRepository.findScoreDetailByMovieId(movieId);
         if (!results.isEmpty()){
             Object[] result = results.get(0);
-            reviewDetailDto.setTotalCommentsNum(Math.toIntExact((Long) result[0]));
-            reviewDetailDto.setScoreAvg((Double) result[1]);
-            reviewDetailDto.setOneStarRate((Double) result[7]);
-            reviewDetailDto.setTwoStarRate((Double) result[8]);
-            reviewDetailDto.setThreeStarRate((Double) result[9]);
-            reviewDetailDto.setFourStarRate((Double) result[10]);
-            reviewDetailDto.setFiveStarRate((Double) result[11]);
+            reviewDetailDto.setTotalCommentsNum(result[0] != null ? Math.toIntExact((Long) result[0]) : 0);
+            reviewDetailDto.setScoreAvg(result[1] != null ? (Double) result[1] : 0.0);
+            reviewDetailDto.setOneStarRate(result[7] != null ? (Double) result[7] : 0.0);
+            reviewDetailDto.setTwoStarRate(result[8] != null ? (Double) result[8] : 0.0);
+            reviewDetailDto.setThreeStarRate(result[9] != null ? (Double) result[9] : 0.0);
+            reviewDetailDto.setFourStarRate(result[10] != null ? (Double) result[10] : 0.0);
+            reviewDetailDto.setFiveStarRate(result[11] != null ? (Double) result[11] : 0.0);
         }
 
         // 取得會員本人的評論列表
@@ -133,33 +133,37 @@ public class ReviewDetailService {
         Interactive interactive;
         try {
             interactive = interactiveRepository.findByReviewIdAndUserId(reviewId, userId);
+            if (interactive == null) {
+                // 創建一筆新的互動紀錄
+                interactive = new Interactive();
+                interactive.setReviewId(reviewId);
+                interactive.setUserId(userId);
+                interactive.setLikeit(false);
+                interactive.setDislike(false);
+                interactive.setReport(false);
+            }
+
+            // 依據會員操作，做出對應更新
+            switch (action) {
+                case "likeit":
+                    interactive.setLikeit(!interactive.isLikeit());
+                    interactive.setDislike(false);
+                    break;
+                case "dislike":
+                    interactive.setLikeit(false);
+                    interactive.setDislike(!interactive.isDislike());
+                    break;
+                case "report":
+                    interactive.setReport(true);
+                    break;
+                default:
+                    throw new IllegalArgumentException("無效的操作");
+            }
+            interactiveRepository.save(interactive);
         } catch (EntityNotFoundException e) {
-            // 創建一筆互動紀錄
-            interactive = new Interactive();
-            interactive.setReviewId(reviewId);
-            interactive.setUserId(userId);
-            interactive.setLikeit(false);
-            interactive.setDislike(false);
-            interactive.setReport(false);
+            throw new EntityNotFoundException("該則評論已被刪除");
         } catch (Exception e) {
             throw new RuntimeException("系統繁忙中，請稍後再試");
-        }
-
-        // 依據會員操作，做出對應更新
-        switch (action) {
-            case "likeit":
-                interactive.setLikeit(!interactive.isLikeit());
-                interactive.setDislike(false);
-                break;
-            case "dislike":
-                interactive.setLikeit(false);
-                interactive.setDislike(!interactive.isDislike());
-                break;
-            case "report":
-                interactive.setReport(true);
-                break;
-            default:
-                throw new IllegalArgumentException("無效的操作");
         }
         interactiveRepository.save(interactive);
 
