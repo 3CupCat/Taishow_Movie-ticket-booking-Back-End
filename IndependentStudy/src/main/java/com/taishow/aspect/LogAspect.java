@@ -20,7 +20,9 @@ public class LogAspect {
 
     // controller檔案下所有的controller及所有方法 => (..)可以任何參數、可以任意返回
     // 定義切面位置
-    @Pointcut("execution(* com.taishow.controller.*.*(..))")
+    @Pointcut("within(com.taishow.controller.cms.LoginController) || " +
+            "within(com.taishow.controller.cms.MovieReleaseController) || " +
+            "within(com.taishow.controller.cms.StillController)")
     public void log(){
     }
 
