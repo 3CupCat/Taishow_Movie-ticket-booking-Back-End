@@ -102,4 +102,10 @@ public class MovieService {
     public List<Movie> searchMovies(String query) {
         return movieRepository.findByTitleContainingIgnoreCase(query);
     }
+    public List<Movie> getEndedMovies() {
+        Date today = new Date();
+        return movieRepository.findByIsPlaying(false).stream()
+                .filter(movie -> movie.getReleaseDate().before(today))
+                .collect(Collectors.toList());
+    }
 }

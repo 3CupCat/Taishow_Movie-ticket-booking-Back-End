@@ -17,12 +17,12 @@ public class MovieController {
 
     private final MovieService movieService;
 
-    // 构造函数注入依赖
+
     public MovieController(MovieService movieService) {
         this.movieService = movieService;
     }
 
-    // 创建电影
+    // 創建電影
     @PostMapping
     public ResponseEntity<Movie> createMovie(@RequestBody Movie movie) {
         Movie createdMovie = movieService.createOrUpdateMovie(movie);
@@ -73,6 +73,15 @@ public class MovieController {
         List<Movie> movieList = movieService.getAllMovies(isPlaying);
         if (!movieList.isEmpty()) {
             return ResponseEntity.status(HttpStatus.OK).body(movieList);
+        } else {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        }
+    }
+    @GetMapping("/movies/ended")
+    public ResponseEntity<List<Movie>> getEndedMovies() {
+        List<Movie> endedMovies = movieService.getEndedMovies();
+        if (!endedMovies.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.OK).body(endedMovies);
         } else {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }

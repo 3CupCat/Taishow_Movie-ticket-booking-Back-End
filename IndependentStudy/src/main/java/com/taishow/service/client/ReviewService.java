@@ -1,6 +1,7 @@
 package com.taishow.service.client;
 
 import com.taishow.dao.FavoriteDao;
+import com.taishow.dao.ReviewRepository;
 import com.taishow.entity.Movie;
 import com.taishow.entity.Review;
 import com.taishow.util.JwtUtil;
@@ -15,11 +16,24 @@ import java.util.Map;
 @Service
 public class ReviewService {
 
-    @Autowired
-    private FavoriteDao favoriteDao;
+    private final ReviewRepository reviewRepository;
+    private final FavoriteDao favoriteDao;
+    private final JwtUtil jwtUtil;
 
     @Autowired
-    private JwtUtil jwtUtil;
+    public ReviewService(ReviewRepository reviewRepository, FavoriteDao favoriteDao, JwtUtil jwtUtil) {
+        this.reviewRepository = reviewRepository;
+        this.favoriteDao = favoriteDao;
+        this.jwtUtil = jwtUtil;
+    }
+
+    public List<Review> getAllReviews() {
+        return reviewRepository.findAll();
+    }
+
+    public List<Review> getReviewsByMovieId(Integer movieId) {
+        return reviewRepository.findByMovieId(movieId);
+    }
 
     public List<Map<String, Object>> getReviewsAndMoviesByToken(String token) {
         Integer userId = jwtUtil.getUserIdFromToken(token);

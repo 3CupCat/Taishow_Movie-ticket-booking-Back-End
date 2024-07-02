@@ -57,7 +57,7 @@ public class JwtFilter implements Filter {
                 path.matches("/payment-records") || path.matches("/payment-records.*") || path.matches("/refund-records") ||
                 path.matches("/refund-records.*") || path.matches("/reviews/\\d") || path.matches("/api/movies/details.*") ||
                 path.matches("/reviews/\\d/interaction") || path.matches("/review-records") || path.matches("/review-records.*") ||
-                path.matches("/permission/login") || path.matches("/movie/.*") || path.matches("/still/.*")) {
+                path.matches("/permission/login") || path.matches("/movie/.*") || path.matches("/still/.*")|| path.matches("/api.*")) {
             chain.doFilter(request, response);
             return;
         }

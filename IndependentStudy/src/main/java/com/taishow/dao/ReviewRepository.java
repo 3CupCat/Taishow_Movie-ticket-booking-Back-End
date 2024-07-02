@@ -64,4 +64,5 @@ public interface ReviewRepository extends JpaRepository<Review, Integer> {
             "WHERE r.movieId = :movieId " +
             "ORDER BY r.id DESC")
     public List<Object[]> findCommentDetailByMovieId(Integer movieId);
+    public List<Review> findByMovieId(Integer movieId);
 }
