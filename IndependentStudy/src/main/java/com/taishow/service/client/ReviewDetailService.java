@@ -10,6 +10,7 @@ import com.taishow.entity.Interactive;
 import com.taishow.entity.Movie;
 import com.taishow.entity.Review;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -97,6 +98,7 @@ public class ReviewDetailService {
         reviewRepository.save(myReview);
     }
 
+    @Transactional
     public void deleteReview(Integer userId, Integer movieId){
         reviewRepository.deleteByUserIdAndMovieId(userId, movieId);
     }

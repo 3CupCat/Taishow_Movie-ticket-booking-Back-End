@@ -41,7 +41,7 @@ public interface ReviewRepository extends JpaRepository<Review, Integer> {
     public List<Object[]> findCommentDetailByMovieIdAndUserId(Integer movieId, Integer userId);
 
     public Review findByUserIdAndMovieId(Integer userId, Integer movieId);
-    public Review deleteByUserIdAndMovieId(Integer userId, Integer movieId);
+    public void deleteByUserIdAndMovieId(Integer userId, Integer movieId);
 
     @Query("SELECT r.id, u.nickName, u.photo, r.reviewDate, r.score, r.comment, " +
             "(SELECT COUNT(i) FROM Interactive i WHERE i.reviewId = r.id AND i.likeit = true), " +
