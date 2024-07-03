@@ -22,7 +22,7 @@ public class ReviewDetailController {
     }
 
     @GetMapping("/reviews/{movieId}")
-    public ResponseEntity<?> getReviews(@RequestHeader("Authorization") String token,
+    public ResponseEntity<?> getReviews(@RequestHeader(value = "Authorization", required = false) String token,
                                                       @PathVariable Integer movieId){
         try {
             Integer userId = null;
