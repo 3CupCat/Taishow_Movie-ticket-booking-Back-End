@@ -76,7 +76,7 @@ public class OrderHistoryService {
             dto.setScreenName((String) result[7]);
             dto.setPayStatus((String) result[8]);
             dto.setQrcode((String) result[9]);
-            dto.setPaymentForm((String) result[10]);
+            dto.setMethod((String) result[10]);
 
             orderHistoryDtoList.add(dto);
         }

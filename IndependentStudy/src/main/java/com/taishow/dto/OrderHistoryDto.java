@@ -12,7 +12,7 @@ public class OrderHistoryDto {
     private String screenName;
     private String payStatus;
     private String qrcode;
-    private String paymentForm;
+    private String method;
 
     public Integer getPaymentId() {
         return paymentId;
@@ -94,11 +94,11 @@ public class OrderHistoryDto {
         this.qrcode = qrcode;
     }
 
-    public String getPaymentForm() {
-        return paymentForm;
+    public String getMethod() {
+        return method;
     }
 
-    public void setPaymentForm(String paymentForm) {
-        this.paymentForm = paymentForm;
+    public void setMethod(String method) {
+        this.method = method;
     }
 }
