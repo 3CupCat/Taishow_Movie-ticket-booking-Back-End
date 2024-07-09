@@ -1,5 +1,6 @@
 package com.taishow.controller.client;
 
+import at.favre.lib.crypto.bcrypt.BCrypt;
 import com.taishow.dao.UserDao;
 import com.taishow.dto.*;
 import com.taishow.entity.User;
@@ -119,41 +120,47 @@ public class UserController {
 
         // 轉換 UserForm 為 User 實體並保存到數據庫
         User user = userForm.convertToUser();
-        userDao.save(user);
+        userService.createUser(user);
         return ResponseEntity.ok("註冊成功");
     }
 
+
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody @NonNull User loginRequest, HttpServletRequest request) {
-        Optional<User> optionalUser = userDao.findByAccountAndPasswd(loginRequest.getAccount(), loginRequest.getPasswd());
+        Optional<User> optionalUser = userDao.findByAccount(loginRequest.getAccount());
 
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();
-            String birthday = (user.getBirthday() != null) ? user.getBirthday().toString() : "N/A";
+            if (userService.verifyPassword(loginRequest.getPasswd(), user.getPasswd())) {
+                String birthday = (user.getBirthday() != null) ? user.getBirthday().toString() : "N/A";
 
-            String token = jwtUtil.generateToken(
-                    user.getId(),
-                    user.getUserName(),
-                    user.getEmail(),
-                    user.getAddress(),
-                    user.getGender(),
-                    user.getPhone(),
-                    user.getAccount(),
-                    birthday
-            );
+                String token = jwtUtil.generateToken(
+                        user.getId(),
+                        user.getUserName(),
+                        user.getEmail(),
+                        user.getAddress(),
+                        user.getGender(),
+                        user.getPhone(),
+                        user.getAccount(),
+                        birthday
+                );
 
-            String loginTime = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date());
-            String ipAddress = request.getRemoteAddr();
-            String country = "Taiwan"; // 你可能需要使用服务根据IP地址确定国家
-            String deviceInfo = request.getHeader("User-Agent");
+                String loginTime = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date());
+                String ipAddress = request.getRemoteAddr();
+                String country = "Taiwan"; // 你可能需要使用服务根据IP地址确定国家
+                String deviceInfo = request.getHeader("User-Agent");
 
-            emailService.sendLoginNotification(user.getEmail(), user.getUserName(), loginTime, ipAddress, country, deviceInfo);
+                emailService.sendLoginNotification(user.getEmail(), user.getUserName(), loginTime, ipAddress, country, deviceInfo);
 
-            return ResponseEntity.ok(token);
+                return ResponseEntity.ok(token);
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("登入失敗，帳號或密碼錯誤");
+            }
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("登入失敗，帳號或密碼錯誤");
         }
     }
+
     @PostMapping("/google-login")
     public ResponseEntity<String> googleLogin(@RequestBody GoogleLoginRequest request, HttpServletRequest httpRequest) {
         User user = userService.findOrCreateUser(request.getEmail(), request.getUserName(), request.getPhoto());
@@ -245,7 +252,7 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("用戶未找到");
         }
     }
-    @PostMapping("/change-password")
+    @PutMapping("/change-password")
     public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest changePasswordRequest, HttpServletRequest request) {
         String token = request.getHeader("Authorization").substring(7);
         Integer userId = jwtUtil.getUserIdFromToken(token);
@@ -256,7 +263,7 @@ public class UserController {
         }
 
         User user = optionalUser.get();
-        if (!changePasswordRequest.getOldPassword().equals(user.getPasswd())) {
+        if (!userService.verifyPassword(changePasswordRequest.getOldPassword(), user.getPasswd())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Old password is incorrect");
         }
 
@@ -264,7 +271,9 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("New passwords do not match");
         }
 
-        user.setPasswd(changePasswordRequest.getNewPassword());
+        // 加密新密碼
+        String hashedPassword = BCrypt.withDefaults().hashToString(12, changePasswordRequest.getNewPassword().toCharArray());
+        user.setPasswd(hashedPassword);
         userDao.save(user);
 
         return ResponseEntity.ok("Password changed successfully");

@@ -1,6 +1,6 @@
 package com.taishow.controller.cms;
 
-import com.taishow.annotation.PermissionAnnotation;
+import at.favre.lib.crypto.bcrypt.BCrypt;
 import com.taishow.dao.UserDao;
 import com.taishow.entity.User;
 import com.taishow.util.JwtUtilForCms;
@@ -29,19 +29,27 @@ public class LoginController {
     }
 
     @PostMapping("/login")
-    @PermissionAnnotation()
-    public ResponseEntity<String> loginPost(@RequestBody User user,
-                                            HttpServletRequest request) {
-        Optional<User> optionalUser = userDao.findByAccountAndPasswd(user.getAccount(), user.getPasswd());
-        if(optionalUser.isPresent()){
-            User users1 = optionalUser.get();
-            String token = jwtUtil.generateToken(
-                    users1.getId(),
-                    users1.getAccount()
-            );
-            return ResponseEntity.ok(token);
+    public ResponseEntity<String> loginPost(@RequestBody User user, HttpServletRequest request) {
+        if (!"admin".equals(user.getAccount())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("帳號或密碼錯誤");
+        }
+
+        Optional<User> optionalUser = userDao.findByAccount(user.getAccount());
+        if (optionalUser.isPresent()) {
+            User foundUser = optionalUser.get();
+            BCrypt.Result result = BCrypt.verifyer().verify(user.getPasswd().toCharArray(), foundUser.getPasswd());
+
+            if (result.verified) {
+                String token = jwtUtil.generateToken(
+                        foundUser.getId(),
+                        foundUser.getAccount()
+                );
+                return ResponseEntity.ok(token);
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("帳號或密碼錯誤");
+            }
         } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("查無權限");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("帳號或密碼錯誤");
         }
     }
 }

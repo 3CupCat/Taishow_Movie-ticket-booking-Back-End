@@ -11,10 +11,10 @@ import java.util.Optional;
 
 @Repository
 public interface UserDao extends JpaRepository<User, Integer> {
-    Optional<User> findByAccountAndPasswd(String account, String passwd);
+    Optional<User> findByAccount(String account);
     Optional<User> findByPhone(String phone);
-    boolean existsByAccount(String account); // 添加这行
-    boolean existsByEmail(String email); // 添加这行
+    boolean existsByAccount(String account);
+    boolean existsByEmail(String email);
 
     @Transactional
     List<User> findByEmail(String email);
@@ -23,3 +23,4 @@ public interface UserDao extends JpaRepository<User, Integer> {
     @Query("SELECT u FROM User u WHERE u.email = ?1")
     List<User> findByEmailJPQL(String email);
 }
+

@@ -1,5 +1,6 @@
 package com.taishow.service.client;
 
+import at.favre.lib.crypto.bcrypt.BCrypt;
 import com.taishow.dao.UserDao;
 import com.taishow.dto.Result;
 import com.taishow.entity.User;
@@ -12,44 +13,45 @@ import java.util.Optional;
 public class UserService {
     private UserDao userDao;
 
-    public UserService(UserDao userDao){
+    public UserService(UserDao userDao) {
         this.userDao = userDao;
     }
 
-    public Result createUser(User users){
-        System.out.println(users); //印出User的資料 => 查看傳輸內容
+    public Result createUser(User users) {
+        // 加密密碼
+        String hashedPassword = BCrypt.withDefaults().hashToString(12, users.getPasswd().toCharArray());
+        users.setPasswd(hashedPassword);
         userDao.save(users);
         return new Result(200, "success");
     }
 
-    public Result updateUser(User users){
+    public Result updateUser(User users) {
         userDao.save(users);
         return new Result(200, "success");
     }
 
-    public Result deleteUser(Integer userId){
+    public Result deleteUser(Integer userId) {
         userDao.deleteById(userId);
         return new Result(200, "success");
     }
 
-    public Result getUser(Integer userId){
-        // 避免找不到user、缺少值、為null的情況發生
-        Optional<User> uesrsOptional = userDao.findById(userId);
-        if(uesrsOptional.isPresent()){
-            return new Result(200, uesrsOptional.get());
-        }else {
+    public Result getUser(Integer userId) {
+        Optional<User> usersOptional = userDao.findById(userId);
+        if (usersOptional.isPresent()) {
+            return new Result(200, usersOptional.get());
+        } else {
             return new Result(9999, "no data");
         }
     }
 
-    public Result findAll(){
-        List<User> users =  userDao.findAll();
+    public Result findAll() {
+        List<User> users = userDao.findAll();
         return new Result(200, users);
     }
 
-    public Result test(User users){
+    public Result test(User users) {
         List<User> list = userDao.findByEmailJPQL(users.getEmail());
-        return new Result(200,list);
+        return new Result(200, list);
     }
 
     public User findOrCreateUser(String email, String userName, String photo) {
@@ -67,4 +69,8 @@ public class UserService {
         }
     }
 
+    public boolean verifyPassword(String rawPassword, String hashedPassword) {
+        BCrypt.Result result = BCrypt.verifyer().verify(rawPassword.toCharArray(), hashedPassword);
+        return result.verified;
+    }
 }
